@@ -14,6 +14,9 @@ WORKDIR "/src"
 
 RUN dotnet nuget add source https://nuget.nexdev.net/api/v2
 
+COPY ["src/Aff12B.Common.DataDomain/Aff12B.Common.DataDomain.csproj", "./Aff12B.Common.DataDomain/"]
+RUN dotnet restore -v n -r linux-x64 ./Aff12B.Common.DataDomain/Aff12B.Common.DataDomain.csproj
+
 COPY ["src/Aff12B.CronJobs.Core/Aff12B.CronJobs.Core.csproj", "./Aff12B.CronJobs.Core/"]
 RUN dotnet restore -v n -r linux-x64 ./Aff12B.CronJobs.Core/Aff12B.CronJobs.Core.csproj
 

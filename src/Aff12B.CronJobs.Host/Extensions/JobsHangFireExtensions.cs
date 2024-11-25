@@ -61,7 +61,6 @@ namespace Aff12B.CronJobs.Host.Extensions
                 RegisterFetchDataTask(configuration);
                 RegisterRetryDataTask(configuration);
             }
-
         }
 
         private static IServiceCollection AddRepository(this IServiceCollection services)
