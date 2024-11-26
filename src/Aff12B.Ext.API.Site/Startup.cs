@@ -14,16 +14,27 @@ using System.Text;
 
 namespace Aff12B.Ext.API.Site
 {
-    public class Startup(IConfiguration configuration)
+    public class Startup
     {
+        public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
             services.AddApiCoreService();
-            services.Configure<TokenManagement>(configuration.GetSection("TokenManagement"));
-            services.Configure<List<User>>(configuration.GetSection("Users"));
-            services.AddFanexSql(configuration);
+            services.Configure<TokenManagement>(Configuration.GetSection("TokenManagement"));
+            services.Configure<List<User>>(Configuration.GetSection("Users"));
+            services.AddFanexSql(Configuration);
             ConfigAuthentication(services);
             services.AddSerilog();
             services.AddAuthorizationBuilder()
@@ -63,7 +74,7 @@ namespace Aff12B.Ext.API.Site
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<ErrorHandler>();
-            if (env.IsDevelopment() || configuration.GetValue<string>("Environment") == Environments.Development)
+            if (env.IsDevelopment() || Configuration.GetValue<string>("Environment") == Environments.Development)
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
@@ -95,7 +106,7 @@ namespace Aff12B.Ext.API.Site
             {
                 endpoints.Map("/", async context =>
                 {
-                    await context.Response.WriteAsync("Site is running");
+                    await context.Response.WriteAsync("Hello, Welcome to 12B Web API!");
                 });
             });
 
@@ -107,7 +118,7 @@ namespace Aff12B.Ext.API.Site
 
         private void ConfigAuthentication(IServiceCollection services)
         {
-            var token = configuration.GetSection("TokenManagement").Get<TokenManagement>();
+            var token = Configuration.GetSection("TokenManagement").Get<TokenManagement>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(x =>
                 {

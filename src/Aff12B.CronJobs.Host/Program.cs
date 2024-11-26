@@ -20,11 +20,9 @@ var startup = new Startup(builder.Configuration);
 startup.ConfigureServices(builder.Services);
 
 var app = builder.Build();
-app.MapGet("/", () => "Hello, Welcome to B2C API Service!");
+app.MapGet("/", () => "Hello, Welcome to 12B CronJobs!");
 
 // Configure the HTTP request pipeline.
 startup.Configure(app, app.Environment);
-
-app.MapDefaultControllerRoute();
 
 app.Run();

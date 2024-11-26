@@ -89,8 +89,6 @@ namespace Aff12B.CronJobs.Host
             });
 
             services.AddCronJobsDI(configuration);
-
         }
-
     }
 }
