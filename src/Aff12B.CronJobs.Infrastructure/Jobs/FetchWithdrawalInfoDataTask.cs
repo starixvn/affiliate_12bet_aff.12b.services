@@ -4,6 +4,7 @@ using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
+using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Hangfire;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,10 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         ILicenseeApi licenseeApi,
         IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<WithdrawalInfoModel>(thirdPartyImportRepository, configuration.Get(Constants.ServiceConfigName.PULL_WITHDRAWAL_INFO), timeTrackerService)
     {
-        private const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fff";
         private const int BatchCount = 2000;
 
         [DisableConcurrentExecution(60)]
         [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Template should be a static expression", Justification = "<Pending>")]
         public override async Task FetchDataAsync()
         {
             try
@@ -82,7 +81,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
             if (trackValue.HasValue)
             {
-                return trackValue.Value.ToString();
+                return trackValue.Value.ToString(Format.DateTimeFormat);
             }
             throw new ArgumentException($"Can not insert nullable DateTime Tracker Value of table {TableName}");
         }
@@ -94,7 +93,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 ? throw new ArgumentException($"Not valid DateTime Tracker Value {tracker.KeyValue} of table {TableName}")
                 : Convert.ToDateTime(tracker.KeyValue);
             var query = GetAdjustmentTime(date);
-            return query.ToString(DateTimeFormat);
+            return query.ToString(Format.DateTimeFormat);
         }
 
         private DateTime GetAdjustmentTime(DateTime date) => date.AddMinutes(Settings.AdjustmentValue);
