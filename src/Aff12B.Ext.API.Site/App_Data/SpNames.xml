@@ -5,7 +5,7 @@
     <Setting Key="API_Get_TpGameType" SpName="API_Get_TpGameType" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_Get_ServerInfo" SpName="API_Get_ServerInfo" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_Get_Customer" SpName="API_Get_Customer" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
-    <Setting Key="API_DepositInfo_Get" SpName="API_DepositInfo_Get_12B" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
+    <Setting Key="API_DepositInfo_Get" SpName="API_DepositInfo_Get_YB" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_BonusInfo_Get" SpName="API_BonusInfo_Get" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_BonusInfoByDate_Get" SpName="API_BonusInfoByDate_Get" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_WithdrawalInfo_Get" SpName="API_WithdrawalInfo_Get" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
