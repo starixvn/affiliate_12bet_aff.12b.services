@@ -29,7 +29,7 @@ namespace Aff12B.Ext.API.Site.Controllers
             var result = await _authService.IsAuthenticated(request);
 
             return result.Item1 ? Ok(result.Item2)
-                : (ActionResult)BadRequest("Wrong username or password");
+                : BadRequest("Wrong username or password");
         }
     }
 }
