@@ -102,7 +102,7 @@ namespace Aff12B.Ext.API.Site.Controllers
                     AffiliateCode = affiliate.AffiliateCode,
                     AffiliateName = affiliate.AffiliateName,
                     CustId = affiliate.CustId,
-                    ParentAffiliate = affiliate.ParentAffiliate,
+                    ParentAffiliate = affiliate.ParentAffiliate ?? string.Empty,
                     SiteId = affiliate.SiteId,
                     UserName = affiliate.UserName,
                     FirstName = affiliate.FirstName,

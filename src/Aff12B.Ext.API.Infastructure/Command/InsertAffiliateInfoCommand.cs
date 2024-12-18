@@ -10,7 +10,7 @@ namespace Aff12B.Ext.API.Infastructure.Command
 
         public string AffiliateName { get; set; }
 
-        public string ParentAffiliate { get; set; } = null;
+        public string ParentAffiliate { get; set; }
 
         public string AffiliateCode { get; set; }
 
