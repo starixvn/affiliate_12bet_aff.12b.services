@@ -1,11 +1,7 @@
 ﻿namespace Aff12B.CronJobs.Infrastructure.SpParams
 {
-    public class SiteNameInfo : SettingInfo
+    public class SiteNameInfo(string prefixProvider) : SettingInfo(prefixProvider)
     {
-        public SiteNameInfo(string prefixProvider) : base(prefixProvider)
-        {
-        }
-
         public override string SName => "BrandName";
     }
 }

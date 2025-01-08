@@ -5,6 +5,8 @@ namespace Aff12B.CronJobs.Core.Repository
 {
     public interface IDataTrackerRepository
     {
+        Task InsertDataTrackerAsync(IDataTracker command);
+
         Task UpdateDataTrackerAsync(IDataTracker command);
 
         Task<IEnumerable<DataTrackerItem>> FetchDataTracker(IDataTracker criteria);

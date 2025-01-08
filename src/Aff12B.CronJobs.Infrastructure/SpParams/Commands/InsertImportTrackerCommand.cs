@@ -2,9 +2,8 @@
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
-    public class InsertImportTrackerCommand : IdenticalSuffixNonQueryCommand, IImportTimeTracker
+    public class InsertImportTrackerCommand(string prefixProvider = null) : IdenticalSuffixNonQueryCommand(prefixProvider), IImportTimeTracker
     {
-        public InsertImportTrackerCommand(string prefixProvider = null) : base(prefixProvider) { }
         protected override string SuffixSettingKey => "Task_API_TimeTracker_Import";
 
         public override bool IsValid() => true;

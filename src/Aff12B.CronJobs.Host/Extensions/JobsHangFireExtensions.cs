@@ -69,7 +69,8 @@ namespace Aff12B.CronJobs.Host.Extensions
             services.AddScoped<IAffMemberRepository, AffMemberImportRepository>();
             services.AddScoped<IDataTrackerRepository, DataTrackerRepository>();
             services.AddScoped<IThirdPartyImportRepository, ThirdPartyImportRepository>();
-            services.AddScoped<ITrackerRepository, TrackerRespository>();
+            services.AddScoped<ITrackerRepository, TrackerRepository>();
+            services.AddScoped<IAffInfoRepository, AffInfoRepository>();
             return services;
         }
 
@@ -200,6 +201,14 @@ namespace Aff12B.CronJobs.Host.Extensions
                     ServiceConfigName.INSERT_AFFILIATE_SETTING,
                     listJobDic[ServiceConfigName.INSERT_AFFILIATE_SETTING]
                 );
+
+
+            //InitialInsertAffInfoDataTask
+            services.AddScoped<InitialInsertAffInfoDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING,
+                    listJobDic[ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING]
+                );
         }
 
         private static void RegisterFetchDataTask(IConfiguration configuration)
@@ -209,7 +218,7 @@ namespace Aff12B.CronJobs.Host.Extensions
             RegisterTask<FetchAffCustomerDataTask>(typeof(FetchAffCustomerDataTask).Name, listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}", listJobDic[PULL_BET_RECORD_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            //RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));
+            RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Daily", Cron.Daily(7), job => job.FetchFromAdjusmentDayAsync(3));
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Monthly", Cron.Monthly(4, 12, 0), job => job.FetchLastMonthAsync());
 
@@ -240,7 +249,9 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             var supportedPrefix = configuration.GetSection("App").Get<AppSetting>().SupportDBPrefix;
             var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
+
             RegisterTask<ReInsertAffiliateInfoDataTask>($"{typeof(ReInsertAffiliateInfoDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
+            RegisterTask<InitialInsertAffInfoDataTask>(typeof(InitialInsertAffInfoDataTask).Name, listJobDic[INITIAL_INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
         }
 
         private static void RegisterTask<T>(string serviceId, string cronExpression, Expression<Func<T, Task>> methodCall)

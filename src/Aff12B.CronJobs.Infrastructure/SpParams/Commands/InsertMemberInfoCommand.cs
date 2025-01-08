@@ -3,11 +3,8 @@ using Fanex.Data;
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
-    public class InsertMemberInfoCommand : IdenticalSuffixNonQueryCommand, IAffMemberImportInfo
+    public class InsertMemberInfoCommand(string prefixProvider) : IdenticalSuffixNonQueryCommand(prefixProvider), IAffMemberImportInfo
     {
-        public InsertMemberInfoCommand(string prefixProvider) : base(prefixProvider)
-        { }
-
         [SpParam(Ignored = true)]
         public string SettingPrefix { get; set; }
 

@@ -2,12 +2,8 @@
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
-    public class InsertThirdPartyRecodInfoCommand : IdenticalSuffixNonQueryCommand, IPushDataRecord
+    public class InsertThirdPartyRecodInfoCommand(string prefixProvider = null) : IdenticalSuffixNonQueryCommand(prefixProvider), IPushDataRecord
     {
-        public InsertThirdPartyRecodInfoCommand(string prefixProvider = null) : base(prefixProvider)
-        {
-        }
-
         protected override string SuffixSettingKey => "Task_API_Queue_Import";
         public override bool IsValid() => true;
 

@@ -2,11 +2,8 @@
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams
 {
-    public class GetLastedImportTimeCriteria : IdenticalSurfixCriteriaBase, ITrackerSource
+    public class GetLastedImportTimeCriteria(string prefixProvider = null) : IdenticalSurfixCriteriaBase(prefixProvider), ITrackerSource
     {
-        public GetLastedImportTimeCriteria(string prefixProvider = null)
-            : base(prefixProvider) { }
-
         protected override string SuffixSettingKey => "Task_API_TimeTracker_Sel";
 
         public override bool IsValid() => true;

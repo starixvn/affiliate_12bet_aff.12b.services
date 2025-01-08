@@ -2,12 +2,9 @@
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams
 {
-    public abstract class IdenticalSurfixCriteriaBase : CriteriaBase
+    public abstract class IdenticalSurfixCriteriaBase(string prefixProvider = null) : CriteriaBase
     {
-        protected readonly string _prefixProvider;
-
-        protected IdenticalSurfixCriteriaBase(string prefixProvider = null)
-            => _prefixProvider = prefixProvider;
+        protected readonly string _prefixProvider = prefixProvider;
 
         protected abstract string SuffixSettingKey { get; }
 

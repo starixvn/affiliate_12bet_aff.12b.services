@@ -37,9 +37,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
         [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task HandleAsync()
         {
-            var prefixPrviders = Setting.SupportedPrefix;
+            var prefixProviders = Setting.SupportedPrefix;
             var dataTrackerItems = await _trackerService.FetchTrackerAsync(
-                prefixPrviders,
+                prefixProviders,
                 new int[] { DataTrackerType.InsertAffiliate },
                 ListPullStatusId
             );

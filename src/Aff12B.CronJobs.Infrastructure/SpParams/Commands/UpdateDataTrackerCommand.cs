@@ -4,11 +4,8 @@ using Fanex.Data.Repository;
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
-    public class UpdateDataTrackerCommand : IdenticalSuffixNonQueryCommand, INonQueryCommand, IDataTracker
+    public class UpdateDataTrackerCommand(string prefixProvider) : IdenticalSuffixNonQueryCommand(prefixProvider), INonQueryCommand, IDataTracker
     {
-        public UpdateDataTrackerCommand(string prefixProvider) : base(prefixProvider)
-        { }
-
         public int PushTrackerId { get; set; }
 
         public int StatusId { get; set; }

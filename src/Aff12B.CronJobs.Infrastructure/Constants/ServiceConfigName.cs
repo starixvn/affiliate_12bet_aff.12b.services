@@ -27,5 +27,7 @@
         public const string PULL_TPWAGER_9W_SETTING = "PullTpWager9WSetting";
 
         public const string INSERT_AFFILIATE_SETTING = "InsertAffiliateSetting";
+
+        public const string INITIAL_INSERT_AFFILIATE_SETTING = "InitialInsertAffiliateSetting";
     }
 }

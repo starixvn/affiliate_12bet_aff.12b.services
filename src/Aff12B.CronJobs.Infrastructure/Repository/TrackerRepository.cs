@@ -7,11 +7,11 @@ using Fanex.Data.Repository;
 
 namespace Aff12B.CronJobs.Infrastructure.Repository
 {
-    public class TrackerRespository : ITrackerRepository
+    public class TrackerRepository : ITrackerRepository
     {
         private readonly IDynamicRepository _repo;
 
-        public TrackerRespository(IDynamicRepository repo)
+        public TrackerRepository(IDynamicRepository repo)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }

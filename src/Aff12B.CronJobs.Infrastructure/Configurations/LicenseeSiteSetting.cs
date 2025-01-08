@@ -9,7 +9,7 @@ namespace Aff12B.CronJobs.Infrastructure.Configurations
 
         public string GetCodePrefix(string site)
         {
-            var siteMapping = LicenseeSiteMapping.FirstOrDefault(m => m.SiteName.Equals(site, System.StringComparison.InvariantCultureIgnoreCase));
+            var siteMapping = LicenseeSiteMapping.FirstOrDefault(m => m.SiteName.Equals(site, StringComparison.InvariantCultureIgnoreCase));
             return siteMapping == null ? site : siteMapping.SettingCodePrefix;
         }
     }

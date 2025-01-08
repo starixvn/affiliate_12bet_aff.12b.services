@@ -1,7 +1,4 @@
-﻿
-
-
-using Aff12B.CronJobs.Core.Domain;
+﻿using Aff12B.CronJobs.Core.Domain;
 using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Infrastructure.SpParams.Commands;
@@ -23,5 +20,8 @@ namespace Aff12B.CronJobs.Infrastructure.Repository
 
         public Task UpdateDataTrackerAsync(IDataTracker command)
             => _repo.ExecuteAsync((UpdateDataTrackerCommand)command);
+
+        public Task InsertDataTrackerAsync(IDataTracker command)
+            => _repo.ExecuteAsync((InsertDataTrackerCommand)command);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Aff12B.CronJobs.Core.Domain.DTOs;
+﻿using Aff12B.CronJobs.Core.Domain;
+using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.SpParams;
@@ -43,6 +44,12 @@ namespace Aff12B.CronJobs.Infrastructure.Services
                 PushTrackerId = item.PushTrackerId
             });
         }
+
+        public Task InsertDataTrackerAsync(IDataTracker command)
+        {
+            return _repository.InsertDataTrackerAsync(command);
+        }
+
 
         private async Task<IEnumerable<DataTrackerItem>> FetchAndAssignValue(DataTrackerCriteria criteria, string prefixProvider)
         {

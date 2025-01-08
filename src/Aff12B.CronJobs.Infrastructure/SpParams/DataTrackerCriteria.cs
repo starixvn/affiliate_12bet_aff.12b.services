@@ -3,13 +3,8 @@ using Fanex.Data;
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams
 {
-    public class DataTrackerCriteria : IdenticalSurfixCriteriaBase, IDataTracker
+    public class DataTrackerCriteria(string prefixProvider) : IdenticalSurfixCriteriaBase(prefixProvider), IDataTracker
     {
-
-        public DataTrackerCriteria(string prefixProvider) : base(prefixProvider)
-        {
-        }
-
         protected override string SuffixSettingKey => "Task_API_PushDataTracker_Sel";
 
         public int PushDataType { get; set; }
