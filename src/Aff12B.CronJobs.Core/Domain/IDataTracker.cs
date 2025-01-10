@@ -6,6 +6,6 @@
 
         int StatusId { get; }
 
-        int PushTrackerId { get; }
+        long PushTrackerId { get; }
     }
 }

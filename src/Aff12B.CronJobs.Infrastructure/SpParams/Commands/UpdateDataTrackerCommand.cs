@@ -6,7 +6,7 @@ namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
     public class UpdateDataTrackerCommand(string prefixProvider) : IdenticalSuffixNonQueryCommand(prefixProvider), INonQueryCommand, IDataTracker
     {
-        public int PushTrackerId { get; set; }
+        public long PushTrackerId { get; set; }
 
         public int StatusId { get; set; }
 

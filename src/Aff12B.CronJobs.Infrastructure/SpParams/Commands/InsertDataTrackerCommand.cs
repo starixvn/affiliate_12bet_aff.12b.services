@@ -11,7 +11,7 @@ namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 
         public string PushDataInfo { get; set; }
 
-        public int PushTrackerId { get; set; }
+        public long PushTrackerId { get; set; }
 
         public int ErrCode { get; set; }
 

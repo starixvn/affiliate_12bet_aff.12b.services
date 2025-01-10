@@ -4,7 +4,7 @@
     {
         public string PrefixSiteName { get; set; }
 
-        public int PushTrackerId { get; set; }
+        public long PushTrackerId { get; set; }
 
         public int StatusId { get; set; }
 

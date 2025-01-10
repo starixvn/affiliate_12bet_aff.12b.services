@@ -8,6 +8,8 @@ namespace Aff12B.Ext.API.Infastructure.Command
 
         public int SiteId { get; set; }
 
+        public int AffiliateId { get; set; }
+
         public string AffiliateName { get; set; }
 
         public string ParentAffiliate { get; set; }
@@ -26,7 +28,7 @@ namespace Aff12B.Ext.API.Infastructure.Command
 
         public string Status { get; set; }
 
-        public override string GetSettingKey() => "Affiliate_AffiliateInfo_Set_V2";
+        public override string GetSettingKey() => "Affiliate_AffiliateInfo_Set";
 
         public override bool IsValid() => true;
     }

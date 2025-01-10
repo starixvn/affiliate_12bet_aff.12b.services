@@ -2,6 +2,8 @@
 {
     public class AffInfo
     {
+        public int AffId { get; set; }
+
         public string AffCode { get; set; }
 
         public string ParentAff { get; set; }

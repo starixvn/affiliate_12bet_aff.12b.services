@@ -53,7 +53,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 
 
         [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
+        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 0)]
         public async Task HandleAsync()
         {
             if (SupportedSites == null || !SupportedSites.Any())
@@ -61,7 +61,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 return;
             }
 
-            _logger.LogError($"Start importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogInformation($"Start importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+
             foreach (var site in SupportedSites)
             {
                 var sitePrefixProvider = _licenseeSiteSetting.GetCodePrefix(site);
@@ -69,7 +70,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 var affInfos = await GetDataAsync(sitePrefixProvider);
                 await ImportDataByBatchAsync(affInfos, sitePrefixProvider);
             }
-            _logger.LogError($"Complete importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+
+            _logger.LogInformation($"Complete importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
         }
 
         private async Task ImportDataByBatchAsync(IEnumerable<AffInfo> data, string sitePrefixProvider)
@@ -124,6 +126,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             {
                 CustId = affInfo.Player_CustId,
                 SiteId = SITE_IDs[sitePrefixProvider],
+                AffiliateId = affInfo.AffId,
                 AffiliateName = affInfo.UserName,
                 ParentAffiliate = affInfo.ParentAff,
                 AffiliateCode = affInfo.AffCode,
@@ -145,7 +148,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 
             var item = new DataTrackerItem
             {
-                PrefixSiteName = sitePrefixProvider,
+                PrefixSiteName = prefixProvider,
                 PushTrackerId = command.PushTrackerId,
             };
 

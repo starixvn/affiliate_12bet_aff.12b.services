@@ -5,6 +5,7 @@ using Aff12B.CronJobs.Host.Settings;
 using Fanex.Data.SqlServer;
 using Hangfire;
 using Hangfire.Redis.StackExchange;
+using Sentry.AspNetCore;
 using StackExchange.Redis;
 
 namespace Aff12B.CronJobs.Host
@@ -18,6 +19,7 @@ namespace Aff12B.CronJobs.Host
             services.AddControllers();
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
+            services.Configure<SentryAspNetCoreOptions>(configuration.GetSection("Sentry"));
             services.AddLogging();
             services.AddUnderMaintenance(configuration);
             services.AddHttpClient();

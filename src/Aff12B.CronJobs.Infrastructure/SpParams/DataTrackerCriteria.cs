@@ -12,7 +12,7 @@ namespace Aff12B.CronJobs.Infrastructure.SpParams
         public int StatusId { get; set; }
 
         [SpParam(Ignored = true)]
-        public int PushTrackerId => default;
+        public long PushTrackerId => default;
 
         public override bool IsValid()
             => true;
