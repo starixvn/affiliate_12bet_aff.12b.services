@@ -1,5 +1,6 @@
 ﻿using Aff12B.CronJobs.Core.Domain;
 using Aff12B.CronJobs.Core.Repository;
+using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Exceptions;
 using Aff12B.CronJobs.Infrastructure.SpParams;
 using Aff12B.CronJobs.Infrastructure.SpParams.Commands;
@@ -22,6 +23,17 @@ namespace Aff12B.CronJobs.Infrastructure.Repository
             if (memberImportInfo.ErrCode != 0)
             {
                 throw new ImporterException(memberImportInfo.ErrCode.ToString(), memberImportInfo.ErrMsg, memberImportInfo.XmlData);
+            }
+        }
+
+        public async Task InsertAffMemberTimeTrackerAsync(IInsertAffMemberTimeTracker timeTracker)
+        {
+            var command = (InsertAffMemberTimeTrackerCommand)timeTracker;
+            await dynamicRepository.ExecuteAsync(command);
+
+            if (command.ErrCode != SqlResponseCode.Success)
+            {
+                throw new ImporterException(command.ErrCode, command.ErrMsg);
             }
         }
     }

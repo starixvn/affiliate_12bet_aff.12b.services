@@ -11,7 +11,7 @@ namespace Aff12B.CronJobs.Infrastructure.Apis
         Task<string> CheckConnection();
 
         [Get("/customer/GetAffCustomers")]
-        Task<IEnumerable<AffCustomerModel>> GetAffCustomerAsync(DateTime fromDate);
+        Task<IEnumerable<AffCustomerModel>> GetAffCustomerAsync(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000);
 
         [Get("/customer/GetCustomers")]
         Task<IEnumerable<CustomerModel>> GetCustomersAsync(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000);

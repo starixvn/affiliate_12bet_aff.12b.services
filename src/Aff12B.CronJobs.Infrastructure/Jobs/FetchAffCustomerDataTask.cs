@@ -2,6 +2,8 @@
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
+using Aff12B.CronJobs.Infrastructure.Constants;
+using Aff12B.CronJobs.Infrastructure.Exceptions;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
 using Aff12B.CronJobs.Infrastructure.SpParams;
@@ -21,23 +23,27 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
     public sealed class FetchAffCustomerDataTask : IFetchAffCustomerDataTask
     {
+        private const int BATCH_COUNT = 2000;
         private readonly IAffMemberRepository _importerRepository;
         private readonly ILicenseeApi _licenseeApi;
         private readonly ILogger _logger;
-        private readonly LicenseeSiteSetting _setting;
+        private FetchServiceSetting _fetchServiceSetting { get; }
+        private readonly LicenseeSiteSetting _licenseeSiteSetting;
 
-        private IEnumerable<string> SupportedSites => _setting?.SupportedSites;
+        private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
 
 
         public FetchAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
             , ILogger<FetchAffCustomerDataTask> logger
-            , IOptions<LicenseeSiteSetting> config)
+            , IOptions<LicenseeSiteSetting> config
+            , IOptionsSnapshot<FetchServiceSetting> configuration)
         {
             _importerRepository = memberImportRepository;
             _licenseeApi = licenseeApi;
             _logger = logger;
-            _setting = config.Value ?? throw new NullReferenceException(nameof(_setting));
+            _fetchServiceSetting = configuration.Get(ServiceConfigName.PULL_AFF_CUSTOMER_SETTING);
+            _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
         }
 
         [DisableConcurrentExecution(60)]
@@ -54,39 +60,74 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             await FetchDataAsync(date);
         }
 
-        public async Task FetchDataAsync(DateTime regTime)
+        public async Task FetchDataAsync(DateTime fromDate)
         {
-            var customerData = await _licenseeApi.GetAffCustomerAsync(regTime);
+            var timeRange = GetApiMaxTimeRange();
+            var apiServerNow = DateTimeHelper.GetApiServerDateTime();
+            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, timeRange);
 
-            if (customerData == null
-                || !customerData.Any())
+            foreach (var range in dateRanges)
             {
-                _logger.LogInformation($"No Data on date {regTime}");
-
-                return;
-            }
-
-            var insertMemberCommands = GetImportingData(customerData);
-            foreach (var command in insertMemberCommands)
-            {
-
-                if (SupportedSites.Any(supportSiteCode => string.Compare(supportSiteCode, command.SiteName, StringComparison.OrdinalIgnoreCase) == 0))
+                int pageIndex = 0;
+                while (true)
                 {
-                    await InsertMembers(regTime, command);
+                    var data = await _licenseeApi.GetAffCustomerAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
+                    if (data.Count() == 0)
+                    {
+                        break;
+                    }
+
+                    var insertMemberCommands = GetImportingData(data);
+                    foreach (var command in insertMemberCommands)
+                    {
+                        if (SupportedSites.Any(supportSiteCode => string.Compare(supportSiteCode, command.SiteName, StringComparison.OrdinalIgnoreCase) == 0))
+                        {
+                            await InsertMembers(command, range.FromDate, range.ToDate);
+                        }
+                        else
+                        {
+                            _logger.LogInformation($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data  from {range.FromDate} to {range.ToDate}");
+                        }
+                    }
+
+                    pageIndex++;
+                    if (data.Count() < BATCH_COUNT)
+                    {
+                        break;
+                    }
                 }
-                else
+
+                await SaveInsertAffMemberTimeTrackerAsync(range.ToDate);
+            }
+        }
+
+        private async Task SaveInsertAffMemberTimeTrackerAsync(DateTime toDate)
+        {
+            foreach (var site in SupportedSites)
+            {
+                var sitePrefixProvider = _licenseeSiteSetting.GetCodePrefix(site);
+
+                var param = new InsertAffMemberTimeTrackerCommand(sitePrefixProvider)
                 {
-                    _logger.LogInformation($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data {regTime}");
+                    LastImportedTime = toDate,
+                    ErrCode = SqlResponseCode.Success,
+                    ErrMsg = string.Empty
+                };
+
+                await _importerRepository.InsertAffMemberTimeTrackerAsync(param);
+                if (param.ErrCode != SqlResponseCode.Success)
+                {
+                    throw new ImporterException(param.ErrCode, param.ErrMsg);
                 }
             }
         }
 
-        private async Task InsertMembers(DateTime regTime, InsertMemberInfoCommand command)
+        private async Task InsertMembers(InsertMemberInfoCommand command, DateTime fromDate, DateTime toDate)
         {
             try
             {
                 await _importerRepository.ImportMemberAsync(command);
-                _logger.LogInformation($"Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data {regTime} by SP {command.GetSettingKey()}: {command.XmlData}");
+                _logger.LogInformation($"Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data from {fromDate} to {toDate} by SP {command.GetSettingKey()}: {command.XmlData}");
             }
             catch (Exception ex)
             {
@@ -112,7 +153,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
         private InsertMemberInfoCommand GenerateImportedDataBySiteName(string siteName, List<AffCustomerModel> customers)
         {
-            var prefixSettingCode = _setting.GetCodePrefix(siteName);
+            var prefixSettingCode = _licenseeSiteSetting.GetCodePrefix(siteName);
             var xml = BuildXml(customers);
 
             return new InsertMemberInfoCommand(prefixSettingCode)
@@ -155,7 +196,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             {
                 try
                 {
-                    var siteCode = _setting.GetCodePrefix(site);
+                    var siteCode = _licenseeSiteSetting.GetCodePrefix(site);
                     var siteNameInStore = await GetSiteNameAsync(siteCode);
                     if (string.Compare(site, siteNameInStore, StringComparison.OrdinalIgnoreCase) != 0)
                     {
@@ -189,5 +230,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         {
             return await _importerRepository.GetSiteNameAsync(new SiteNameInfo(settingPrefixCode));
         }
+
+        private TimeSpan GetApiMaxTimeRange()
+            => TimeSpan.FromMinutes(_fetchServiceSetting.MaxTimeRange);
     }
 }

@@ -9,5 +9,7 @@ namespace Aff12B.CronJobs.Core.Repository
         Task<DateTime> GetLastedMemberImportedTimeAsync(ISettingInfo setting);
 
         Task<string> GetSiteNameAsync(ISettingInfo settingInfo);
+
+        Task InsertAffMemberTimeTrackerAsync(IInsertAffMemberTimeTracker timeTracker);
     }
 }

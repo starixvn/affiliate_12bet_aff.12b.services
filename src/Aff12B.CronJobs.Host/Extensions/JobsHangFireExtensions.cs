@@ -126,11 +126,14 @@ namespace Aff12B.CronJobs.Host.Extensions
             var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _);
 
             //FetchCustomerDataTask
-            services.AddScoped<FetchAffCustomerDataTask>();
+            services.AddScoped<FetchAffCustomerDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_AFF_CUSTOMER_SETTING,
+                    listJobDic[ServiceConfigName.PULL_AFF_CUSTOMER_SETTING]);
 
             //FetchBetRecordDataTask
-            services.AddScoped<FetchBetRecordDataTask>();
-            services.Configure<FetchServiceSetting>(
+            services.AddScoped<FetchBetRecordDataTask>()
+                .Configure<FetchServiceSetting>(
                 ServiceConfigName.PULL_BET_RECORD_SETTING,
                 listJobDic[ServiceConfigName.PULL_BET_RECORD_SETTING]);
 
