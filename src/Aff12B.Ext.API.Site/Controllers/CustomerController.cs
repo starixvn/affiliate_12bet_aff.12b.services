@@ -28,8 +28,9 @@ namespace Aff12B.Ext.API.Site.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<AffCustomerModel>> GetAffCustomers(DateTime fromDate)
-            => await _dynamicRepository.FetchAsync<AffCustomerModel>(new GetAffCustomersCriteria(fromDate));
+        public async Task<IEnumerable<AffCustomerModel>> GetAffCustomers(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000)
+            => await _dynamicRepository.FetchAsync<AffCustomerModel>(new GetAffCustomersCriteria(fromDate, toDate, pageIndex, pageSize));
+
 
         [HttpGet]
         public async Task<IEnumerable<CustomerModel>> GetCustomers(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000)
