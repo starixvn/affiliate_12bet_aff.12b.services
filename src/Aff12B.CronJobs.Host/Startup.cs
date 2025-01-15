@@ -25,7 +25,7 @@ namespace Aff12B.CronJobs.Host
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
-            AddHangFireService(services);
+            //AddHangFireService(services);
 
         }
 
@@ -49,8 +49,8 @@ namespace Aff12B.CronJobs.Host
             app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseHangFire("/jobs");
-            app.UseRecuringJobs(configuration);
+            //app.UseHangFire("/jobs");
+            //app.UseRecuringJobs(configuration);
 
             app.UseRouting();
 
@@ -59,6 +59,10 @@ namespace Aff12B.CronJobs.Host
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+                endpoints.Map("/", async context =>
+                {
+                    await context.Response.WriteAsync("Hello, Welcome to 12B V2 CronJobs!");
+                });
             });
 
         }

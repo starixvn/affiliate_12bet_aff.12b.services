@@ -13,7 +13,7 @@
     "WebHost": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:7114/jobs",
+      "launchUrl": "https://localhost:7114",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
