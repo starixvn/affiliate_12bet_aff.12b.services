@@ -1,6 +1,4 @@
-﻿
-
-using Aff12B.Common.DataDomain.Params;
+﻿using Aff12B.Common.DataDomain.Params;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -11,7 +9,7 @@ namespace Aff12B.CronJobs.Infrastructure.Handlers
 {
     public class AuthHeaderHandler : DelegatingHandler
     {
-        private const string TOKEN_MEMORY_CACHE = "TOKEN_MEMORY_CAHCE";
+        private const string TOKEN_MEMORY_CACHE = "TOKEN_MEMORY_12B_V2_CRONJOBS_CAHCE";
 
         private readonly ITokenApi _tokenApi;
         private readonly IMemoryCache _memoryCache;

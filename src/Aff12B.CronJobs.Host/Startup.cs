@@ -26,7 +26,6 @@ namespace Aff12B.CronJobs.Host
             services.AddSiteHealthChecks(configuration);
 
             AddHangFireService(services);
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

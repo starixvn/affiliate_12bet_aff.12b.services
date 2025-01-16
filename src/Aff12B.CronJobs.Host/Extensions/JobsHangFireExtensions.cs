@@ -220,7 +220,7 @@ namespace Aff12B.CronJobs.Host.Extensions
 
             RegisterTask<FetchAffCustomerDataTask>(typeof(FetchAffCustomerDataTask).Name, listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchAffCustomerDataTask>($"{typeof(FetchAffCustomerDataTask).Name}-DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
-            
+
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}", listJobDic[PULL_BET_RECORD_SETTING].PullInfoCron, job => job.FetchDataAsync());
             //RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Daily", Cron.Daily(7), job => job.FetchFromAdjusmentDayAsync(3));

@@ -81,7 +81,7 @@ namespace Aff12B.Ext.API.Site
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "Aff12B.Ext.API.Site v2"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {

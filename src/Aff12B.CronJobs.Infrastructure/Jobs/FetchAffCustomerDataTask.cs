@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Web;
-using static Dapper.SqlMapper;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
 {
