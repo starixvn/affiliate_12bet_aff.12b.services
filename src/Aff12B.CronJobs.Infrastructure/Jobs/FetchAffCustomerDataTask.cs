@@ -13,17 +13,21 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Web;
+using static Dapper.SqlMapper;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
 {
     public interface IFetchAffCustomerDataTask : IFetchDataTask
     {
         Task FetchDataAsync(DateTime fromDate);
+
+        Task FetchDataByDateRangeTask();
     }
 
     public sealed class FetchAffCustomerDataTask : IFetchAffCustomerDataTask
     {
         private const int BATCH_COUNT = 2000;
+        private const int DATE_RANGE = 1440;
         private readonly IAffMemberRepository _importerRepository;
         private readonly ILicenseeApi _licenseeApi;
         private readonly ILogger _logger;
@@ -31,7 +35,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         private readonly LicenseeSiteSetting _licenseeSiteSetting;
 
         private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
-
 
         public FetchAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
@@ -60,12 +63,36 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             await FetchDataAsync(date);
         }
 
+        [DisableConcurrentExecution(60)]
+        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
+        public async Task FetchDataByDateRangeTask()
+        {
+            if (SupportedSites == null
+                || !SupportedSites.Any())
+            {
+                return;
+            }
+
+            var fromDate = await GetMinLastedTimeAsync();
+
+            var now = DateTimeHelper.GetApiServerDateTime();
+            var maxTimeRange = TimeSpan.FromMinutes(DATE_RANGE);
+            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, now, maxTimeRange);
+
+            await HandleFetchDataAsync(dateRanges);
+        }
+
         public async Task FetchDataAsync(DateTime fromDate)
         {
             var timeRange = GetApiMaxTimeRange();
             var apiServerNow = DateTimeHelper.GetApiServerDateTime();
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, timeRange);
 
+            await HandleFetchDataAsync(dateRanges);
+        }
+
+        public async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
+        {
             foreach (var range in dateRanges)
             {
                 int pageIndex = 0;

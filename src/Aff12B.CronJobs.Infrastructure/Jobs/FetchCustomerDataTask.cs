@@ -20,11 +20,14 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         Task FetchDataAsync(DateTime fromDate);
 
         Task FetchFixedDataTask();
+
+        Task FetchDataByDateRangeTask();
     }
 
     public sealed class FetchCustomerDataTask : FetchDataForMultipleRepositoryTaskBase<CustomerModel>, IFetchCustomerDataTask
     {
         private const int BATCH_COUNT = 2000;
+        private const int DATE_RANGE = 1440;
 
         private readonly ITrackerService _timeTrackerService;
         private readonly ILicenseeApi _liceseeApi;
@@ -53,6 +56,26 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             var timeRange = GetApiMaxTimeRange();
             var apiServerNow = DateTimeHelper.GetApiServerDateTime();
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, timeRange);
+
+            await HandleFetchDataAsync(dateRanges);
+        }
+
+        [DisableConcurrentExecution(60)]
+        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
+        public async Task FetchDataByDateRangeTask()
+        {
+            var tracker = await _timeTrackerService.GetTrackerAsync(TableName, t => t.CalledTime);
+            var fromDate = GetAdjustmentTime(DateTime.ParseExact(tracker.KeyValue, Format.DateTimeFormat, null));
+
+            var now = DateTimeHelper.GetApiServerDateTime();
+            var maxTimeRange = TimeSpan.FromMinutes(DATE_RANGE);
+            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, now, maxTimeRange);
+
+            await HandleFetchDataAsync(dateRanges);
+        }
+
+        public async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
+        {
             foreach (var range in dateRanges)
             {
                 int pageIndex = 0;

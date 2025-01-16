@@ -25,7 +25,7 @@ namespace Aff12B.CronJobs.Host
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
-            //AddHangFireService(services);
+            AddHangFireService(services);
 
         }
 
@@ -48,9 +48,8 @@ namespace Aff12B.CronJobs.Host
             app.UseSiteHealthChecks(configuration);
             app.UseForwardedHeaders();
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            //app.UseHangFire("/jobs");
-            //app.UseRecuringJobs(configuration);
+            app.UseHangFire("/jobs");
+            app.UseRecuringJobs(configuration);
 
             app.UseRouting();
 
