@@ -53,7 +53,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 while (true)
                 {
                     var data = await _licenseeApi.GetDepositInfo(range.FromDate, range.ToDate, pageIndex, MAX_ROW_COUNT);
-                    if (data.Count() == 0)
+                    if (!data.Any())
                     {
                         break;
                     }

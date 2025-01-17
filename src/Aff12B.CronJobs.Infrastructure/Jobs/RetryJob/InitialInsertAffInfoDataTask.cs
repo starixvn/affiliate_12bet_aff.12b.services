@@ -61,7 +61,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 return;
             }
 
-            _logger.LogInformation($"Start importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Start importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
 
             foreach (var site in SupportedSites)
             {
@@ -71,7 +71,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 await ImportDataByBatchAsync(affInfos, sitePrefixProvider);
             }
 
-            _logger.LogInformation($"Complete importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Complete importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
         }
 
         private async Task ImportDataByBatchAsync(IEnumerable<AffInfo> data, string sitePrefixProvider)

@@ -98,7 +98,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 while (true)
                 {
                     var data = await _licenseeApi.GetAffCustomerAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
-                    if (data.Count() == 0)
+                    if (!data.Any())
                     {
                         break;
                     }
@@ -112,7 +112,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                         }
                         else
                         {
-                            _logger.LogInformation($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data  from {range.FromDate} to {range.ToDate}");
+                            _logger.LogWarning($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data  from {range.FromDate} to {range.ToDate}");
                         }
                     }
 

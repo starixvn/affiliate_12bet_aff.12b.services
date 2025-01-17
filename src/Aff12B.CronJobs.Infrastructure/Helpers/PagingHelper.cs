@@ -4,10 +4,12 @@
     {
         public static IEnumerable<IEnumerable<T>> PagingData<T>(IEnumerable<T> datas, int max)
         {
-            var result = new List<IEnumerable<T>>();
-            result.Add(datas.Take(max));
+            var result = new List<IEnumerable<T>>
+            {
+                datas.Take(max)
+            };
             var remain = datas.Skip(max);
-            while (remain.Count() > 0)
+            while (remain.Any())
             {
                 result.Add(remain.Take(max));
                 remain = remain.Skip(max);

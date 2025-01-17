@@ -82,7 +82,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 while (true)
                 {
                     var data = await _liceseeApi.GetCustomersAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
-                    if (data.Count() == 0)
+                    if (!data.Any())
                     {
                         break;
                     }
