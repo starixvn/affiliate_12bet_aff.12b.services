@@ -1,6 +1,6 @@
 ﻿<Functions>
   <Function Name="Common">
-    <Setting Key="Aff_CustomerSel" SpName="Aff_CustomerSel" DbName="12BMemberSite.Siebog.Read.Affiliate_Api" />
+    <Setting Key="Aff_CustomerSel" SpName="Aff_CustomerSel_V2" DbName="12BMemberSite.Siebog.Read.Affiliate_Api" />
     <Setting Key="API_Get_TpBetRecord_Dynamic" SpName="API_Get_TpBetRecord_Dynamic" DbName="12BMemberSite.Siebog.Read.Affiliate_Api" />
     <Setting Key="API_Get_TpGameType" SpName="API_Get_TpGameType" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_Get_ServerInfo" SpName="API_Get_ServerInfo" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
