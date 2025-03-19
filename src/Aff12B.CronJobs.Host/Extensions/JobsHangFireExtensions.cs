@@ -169,6 +169,11 @@ namespace Aff12B.CronJobs.Host.Extensions
                     ServiceConfigName.PULL_DEPOSIT_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_DEPOSIT_INFO_SETTING]);
 
+            services.AddScoped<FetchRealDepositInfoDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_REAL_DEPOSIT_INFO_SETTING,
+                    listJobDic[ServiceConfigName.PULL_REAL_DEPOSIT_INFO_SETTING]);
+
             //FetchBonusInfoDataTask
             services.AddScoped<FetchBonusInfoDataTask>()
                 .Configure<FetchServiceSetting>(
@@ -226,9 +231,9 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
 
-            RegisterTask<FetchRealAffCustomerDataTask>($"Fetch Aff Customer Data -- Real", listJobDic[PULL_REAL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            RegisterTask<FetchAffCustomerDataTask>($"Fetch Aff Customer Data -- Normal", listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            RegisterTask<FetchAffCustomerDataTask>($"Fetch Aff Customer Data -- DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
+            RegisterTask<FetchRealAffCustomerDataTask>("Fetch Aff Customer Data -- Real", listJobDic[PULL_REAL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchAffCustomerDataTask>("Fetch Aff Customer Data -- Normal", listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchAffCustomerDataTask>("Fetch Aff Customer Data -- DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
 
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}", listJobDic[PULL_BET_RECORD_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));
@@ -243,7 +248,8 @@ namespace Aff12B.CronJobs.Host.Extensions
 
             RegisterTask<FetchGameTypeDataTask>($"{typeof(FetchGameTypeDataTask).Name}", listJobDic[PULL_GAME_TYPE_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
-            RegisterTask<FetchDepositInfoDataTask>($"{typeof(FetchDepositInfoDataTask).Name}", listJobDic[PULL_DEPOSIT_INFO_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchRealDepositInfoDataTask>("Fetch Deposit Info Data -- Real", listJobDic[PULL_REAL_DEPOSIT_INFO_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchDepositInfoDataTask>("Fetch Deposit Info Data -- Normal", listJobDic[PULL_DEPOSIT_INFO_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
             //Bonus Info
             RegisterTask<FetchBonusInfoDataTask>($"{typeof(FetchBonusInfoDataTask).Name}", listJobDic[PULL_BONUS_INFO_SETTING].PullInfoCron, job => job.FetchDataAsync());

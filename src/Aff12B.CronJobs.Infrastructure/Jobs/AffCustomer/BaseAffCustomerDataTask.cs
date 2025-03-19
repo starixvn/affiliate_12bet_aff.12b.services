@@ -26,7 +26,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 
         public BaseAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
-            , ILogger<FetchAffCustomerDataTask> logger
+            , ILogger<BaseAffCustomerDataTask> logger
             , LicenseeSiteSetting licenseeSiteSetting
             , FetchServiceSetting fetchServiceSetting)
         {
