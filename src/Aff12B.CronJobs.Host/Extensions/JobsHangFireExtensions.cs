@@ -150,6 +150,10 @@ namespace Aff12B.CronJobs.Host.Extensions
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_CUSTOMER_SETTING]);
+            services.AddScoped<FetchRealCustomerDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_REAL_CUSTOMER_SETTING,
+                    listJobDic[ServiceConfigName.PULL_REAL_CUSTOMER_SETTING]);
 
             //FetchServerInfoDataTask
             services.AddScoped<FetchServerInfoDataTask>()
@@ -240,9 +244,10 @@ namespace Aff12B.CronJobs.Host.Extensions
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Daily", Cron.Daily(7), job => job.FetchFromAdjusmentDayAsync(3));
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Monthly", Cron.Monthly(4, 12, 0), job => job.FetchLastMonthAsync());
 
-            RegisterTask<FetchCustomerDataTask>($"{typeof(FetchCustomerDataTask).Name}", listJobDic[PULL_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            RegisterTask<FetchCustomerDataTask>($"{typeof(FetchCustomerDataTask).Name}-Daily", Cron.Daily(5), job => job.FetchDataDailyTask());
-            RegisterTask<FetchCustomerDataTask>($"{typeof(FetchCustomerDataTask).Name}-DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
+            RegisterTask<FetchRealCustomerDataTask>("Fetch Customer Data -- Real", listJobDic[PULL_REAL_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchCustomerDataTask>("Fetch Customer Data -- Normal", listJobDic[PULL_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchCustomerDataTask>("Fetch Customer Data -- Daily", Cron.Daily(5), job => job.FetchDataDailyTask());
+            RegisterTask<FetchCustomerDataTask>("Fetch Customer Data -- DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
 
             RegisterTask<FetchServerInfoDataTask>($"{typeof(FetchServerInfoDataTask).Name}", listJobDic[PULL_SERVER_INFO_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
