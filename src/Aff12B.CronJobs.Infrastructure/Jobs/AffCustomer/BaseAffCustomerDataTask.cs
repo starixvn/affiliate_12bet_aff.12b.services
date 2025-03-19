@@ -5,51 +5,38 @@ using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Exceptions;
 using Aff12B.CronJobs.Infrastructure.Helpers;
-using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
 using Aff12B.CronJobs.Infrastructure.SpParams;
 using Aff12B.CronJobs.Infrastructure.SpParams.Commands;
-using Hangfire;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Text;
 using System.Web;
 
-namespace Aff12B.CronJobs.Infrastructure.Jobs
+namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 {
-    public interface IFetchAffCustomerDataTask : IFetchDataTask
+    public abstract class BaseAffCustomerDataTask
     {
-        Task FetchDataAsync(DateTime fromDate);
+        protected const int BATCH_COUNT = 2000;
+        protected readonly IAffMemberRepository _importerRepository;
+        protected readonly ILicenseeApi _licenseeApi;
+        protected readonly ILogger _logger;
+        protected readonly FetchServiceSetting _fetchServiceSetting;
+        protected readonly LicenseeSiteSetting _licenseeSiteSetting;
 
-        Task FetchDataByDateRangeTask();
-    }
+        protected IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
 
-    public sealed class FetchAffCustomerDataTask : IFetchAffCustomerDataTask
-    {
-        private const int BATCH_COUNT = 2000;
-        private const int DATE_RANGE = 1440;
-        private readonly IAffMemberRepository _importerRepository;
-        private readonly ILicenseeApi _licenseeApi;
-        private readonly ILogger _logger;
-        private FetchServiceSetting _fetchServiceSetting { get; }
-        private readonly LicenseeSiteSetting _licenseeSiteSetting;
-
-        private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
-
-        public FetchAffCustomerDataTask(ILicenseeApi licenseeApi
+        public BaseAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
             , ILogger<FetchAffCustomerDataTask> logger
-            , IOptions<LicenseeSiteSetting> config
-            , IOptionsSnapshot<FetchServiceSetting> configuration)
+            , LicenseeSiteSetting licenseeSiteSetting
+            , FetchServiceSetting fetchServiceSetting)
         {
             _importerRepository = memberImportRepository;
             _licenseeApi = licenseeApi;
             _logger = logger;
-            _fetchServiceSetting = configuration.Get(ServiceConfigName.PULL_AFF_CUSTOMER_SETTING);
-            _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
+            _licenseeSiteSetting = licenseeSiteSetting ?? throw new ArgumentNullException(nameof(licenseeSiteSetting));
+            _fetchServiceSetting = fetchServiceSetting ?? throw new ArgumentNullException(nameof(fetchServiceSetting));
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task FetchDataAsync()
         {
             if (SupportedSites == null
@@ -58,39 +45,55 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 return;
             }
 
-            var date = await GetMinLastedTimeAsync();
-            await FetchDataAsync(date);
+            var maxTimeRange = GetApiMaxTimeRange();
+
+            await FetchDataAsync(maxTimeRange);
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
-        public async Task FetchDataByDateRangeTask()
+        protected async Task FetchDataAsync(TimeSpan maxTimeRange)
         {
-            if (SupportedSites == null
-                || !SupportedSites.Any())
+            var date = await GetMinLastedTimeAsync();
+            var fromDate = GetAdjustmentTime(date);
+
+            var apiServerNow = DateTimeHelper.GetApiServerDateTime();
+            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, maxTimeRange);
+
+            await HandleFetchDataAsync(dateRanges);
+        }
+
+        protected async Task<DateTime> GetMinLastedTimeAsync()
+        {
+            var dates = new List<DateTime>();
+            foreach (var site in SupportedSites)
             {
-                return;
+                try
+                {
+                    var siteCode = _licenseeSiteSetting.GetCodePrefix(site);
+                    var siteNameInStore = await GetSiteNameAsync(siteCode);
+                    if (string.Compare(site, siteNameInStore, StringComparison.OrdinalIgnoreCase) != 0)
+                    {
+                        _logger.LogWarning($"Site name in web config {site} isn't having same site name in database {siteNameInStore}");
+                    }
+
+                    var lastedDate = await GetLastedImportDate(siteCode);
+                    dates.Add(lastedDate);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ErrorMessageHelper.GenerateMessage(ex));
+                }
             }
 
-            var fromDate = await GetMinLastedTimeAsync();
+            if (!dates.Any())
+            {
+                throw new InvalidOperationException($"Can't find lasted importing member date");
+            }
 
-            var now = DateTimeHelper.GetApiServerDateTime();
-            var maxTimeRange = TimeSpan.FromMinutes(DATE_RANGE);
-            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, now, maxTimeRange);
-
-            await HandleFetchDataAsync(dateRanges);
+            dates.Sort();
+            return dates.First();
         }
 
-        public async Task FetchDataAsync(DateTime fromDate)
-        {
-            var timeRange = GetApiMaxTimeRange();
-            var apiServerNow = DateTimeHelper.GetApiServerDateTime();
-            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, timeRange);
-
-            await HandleFetchDataAsync(dateRanges);
-        }
-
-        public async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
+        private async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
         {
             foreach (var range in dateRanges)
             {
@@ -133,7 +136,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             {
                 var sitePrefixProvider = _licenseeSiteSetting.GetCodePrefix(site);
 
-                var param = new InsertAffMemberTimeTrackerCommand(sitePrefixProvider)
+                var param = new InsertAffMemberTimeTrackerCommand(sitePrefixProvider, _fetchServiceSetting.DataSource)
                 {
                     LastImportedTime = toDate,
                     ErrCode = SqlResponseCode.Success,
@@ -216,46 +219,17 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             return $"<root>{customerXml}</root>";
         }
 
-        private async Task<DateTime> GetMinLastedTimeAsync()
+        private DateTime GetAdjustmentTime(DateTime fromDate)
+            => fromDate.AddMinutes(_fetchServiceSetting.AdjustmentValue);
+
+        private async Task<string> GetSiteNameAsync(string settingPrefixCode)
         {
-            var dates = new List<DateTime>();
-            foreach (var site in SupportedSites)
-            {
-                try
-                {
-                    var siteCode = _licenseeSiteSetting.GetCodePrefix(site);
-                    var siteNameInStore = await GetSiteNameAsync(siteCode);
-                    if (string.Compare(site, siteNameInStore, StringComparison.OrdinalIgnoreCase) != 0)
-                    {
-                        _logger.LogWarning($"Site name in web config {site} isn't having same site name in database {siteNameInStore}");
-                    }
-
-                    var lastedDate = await GetLastedImportDate(siteCode);
-                    dates.Add(lastedDate);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, ErrorMessageHelper.GenerateMessage(ex));
-                }
-            }
-
-            if (!dates.Any())
-            {
-                throw new InvalidOperationException($"Can't find lasted importing member date");
-            }
-
-            dates.Sort();
-            return dates.First();
+            return await _importerRepository.GetSiteNameAsync(new SiteNameInfo(settingPrefixCode));
         }
 
         private async Task<DateTime> GetLastedImportDate(string settingPrefixCode)
         {
             return await _importerRepository.GetLastedMemberImportedTimeAsync(new MemberImportedTimeInfo(settingPrefixCode));
-        }
-
-        private async Task<string> GetSiteNameAsync(string settingPrefixCode)
-        {
-            return await _importerRepository.GetSiteNameAsync(new SiteNameInfo(settingPrefixCode));
         }
 
         private TimeSpan GetApiMaxTimeRange()

@@ -8,7 +8,10 @@ using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Handlers;
 using Aff12B.CronJobs.Infrastructure.Jobs;
+using Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer;
 using Aff12B.CronJobs.Infrastructure.Jobs.Bonus;
+using Aff12B.CronJobs.Infrastructure.Jobs.Customer;
+using Aff12B.CronJobs.Infrastructure.Jobs.Deposit;
 using Aff12B.CronJobs.Infrastructure.Jobs.Log;
 using Aff12B.CronJobs.Infrastructure.Jobs.Product9W;
 using Aff12B.CronJobs.Infrastructure.Jobs.RetryJob;
@@ -131,6 +134,11 @@ namespace Aff12B.CronJobs.Host.Extensions
                     ServiceConfigName.PULL_AFF_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_AFF_CUSTOMER_SETTING]);
 
+            services.AddScoped<FetchRealAffCustomerDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_REAL_AFF_CUSTOMER_SETTING,
+                    listJobDic[ServiceConfigName.PULL_REAL_AFF_CUSTOMER_SETTING]);
+
             //FetchBetRecordDataTask
             services.AddScoped<FetchBetRecordDataTask>()
                 .Configure<FetchServiceSetting>(
@@ -218,8 +226,9 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
 
-            RegisterTask<FetchAffCustomerDataTask>(typeof(FetchAffCustomerDataTask).Name, listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            RegisterTask<FetchAffCustomerDataTask>($"{typeof(FetchAffCustomerDataTask).Name}-DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
+            RegisterTask<FetchRealAffCustomerDataTask>($"Fetch Aff Customer Data -- Real", listJobDic[PULL_REAL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchAffCustomerDataTask>($"Fetch Aff Customer Data -- Normal", listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            RegisterTask<FetchAffCustomerDataTask>($"Fetch Aff Customer Data -- DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
 
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}", listJobDic[PULL_BET_RECORD_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));

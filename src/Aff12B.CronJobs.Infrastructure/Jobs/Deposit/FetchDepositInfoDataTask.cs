@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace Aff12B.CronJobs.Infrastructure.Jobs
+namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
 {
     public class FetchDepositInfoDataTask : FetchDataForMultipleRepositoryTaskBase<DepositInfoModel>
     {

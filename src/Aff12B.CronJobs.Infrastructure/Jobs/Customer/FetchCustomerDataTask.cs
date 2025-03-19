@@ -11,7 +11,7 @@ using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
 using Hangfire;
 using Microsoft.Extensions.Options;
 
-namespace Aff12B.CronJobs.Infrastructure.Jobs
+namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
 {
     public interface IFetchCustomerDataTask : IFetchDataTask
     {
@@ -132,7 +132,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
         private DateTime GetAdjustmentTime(DateTime fromDate)
             => fromDate.AddMinutes(Settings.AdjustmentValue);
-
 
         protected override string BuildXml(IEnumerable<CustomerModel> data)
             => XmlHelper.BuildXml(data, "root", "row");
