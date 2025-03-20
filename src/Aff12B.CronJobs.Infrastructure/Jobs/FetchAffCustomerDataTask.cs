@@ -190,7 +190,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             };
         }
 
-        private string BuildXml(List<AffCustomerModel> customers)
+        private static string BuildXml(List<AffCustomerModel> customers)
         {
             var customerXml = string.Join(
                     string.Empty,
@@ -208,6 +208,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                             , $"status=\"{HttpUtility.HtmlEncode(customer?.Status)}\""
                             , $"istest=\"{HttpUtility.HtmlEncode(customer?.IsTest)}\""
                             , $"affcode=\"{HttpUtility.HtmlEncode(customer?.AffCode)}\""
+                            , $"affmedialinkid=\"{HttpUtility.HtmlEncode(customer?.AffMediaLinkId)}\""
                             , "/>");
                         return builder.ToString();
                     }));

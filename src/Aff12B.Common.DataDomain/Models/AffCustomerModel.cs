@@ -25,5 +25,7 @@
         public bool? IsTest { get; set; }
 
         public string AffCode { get; set; }
+
+        public int? AffMediaLinkId { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using Aff12B.CronJobs.Host.Settings;
 using Fanex.Data.SqlServer;
 using Hangfire;
 using Hangfire.Redis.StackExchange;
+using Microsoft.AspNetCore.HttpOverrides;
 using Sentry.AspNetCore;
 using StackExchange.Redis;
 
@@ -45,8 +46,11 @@ namespace Aff12B.CronJobs.Host
             }
             app.UseMiddleware<ErrorHandler>();
             app.UseSiteHealthChecks(configuration);
-            app.UseForwardedHeaders();
-            app.UseHttpsRedirection();
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseHangFire("/jobs");
             app.UseRecuringJobs(configuration);
 
