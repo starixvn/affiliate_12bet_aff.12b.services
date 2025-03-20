@@ -27,5 +27,7 @@
         public string AffCode { get; set; }
 
         public int? AffMediaLinkId { get; set; }
+
+        public long? ClickId { get; set; }
     }
 }
