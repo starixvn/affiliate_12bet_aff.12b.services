@@ -75,7 +75,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
                         _logger.LogWarning($"Site name in web config {site} isn't having same site name in database {siteNameInStore}");
                     }
 
-                    var lastedDate = await GetLastedImportDate(siteCode);
+                    var lastedDate = await GetLastedImportDate(siteCode, _fetchServiceSetting.DataSource);
                     dates.Add(lastedDate);
                 }
                 catch (Exception ex)
@@ -227,9 +227,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             return await _importerRepository.GetSiteNameAsync(new SiteNameInfo(settingPrefixCode));
         }
 
-        private async Task<DateTime> GetLastedImportDate(string settingPrefixCode)
+        private async Task<DateTime> GetLastedImportDate(string settingPrefixCode, string sName)
         {
-            return await _importerRepository.GetLastedMemberImportedTimeAsync(new MemberImportedTimeInfo(settingPrefixCode));
+            return await _importerRepository.GetLastedMemberImportedTimeAsync(new MemberImportedTimeInfo(settingPrefixCode, sName));
         }
 
         private TimeSpan GetApiMaxTimeRange()
