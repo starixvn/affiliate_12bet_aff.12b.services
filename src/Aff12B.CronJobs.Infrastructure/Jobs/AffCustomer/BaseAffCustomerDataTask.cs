@@ -16,6 +16,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
     public abstract class BaseAffCustomerDataTask
     {
         protected const int BATCH_COUNT = 2000;
+        protected virtual bool IsNeedRealData => false;
+
         protected readonly IAffMemberRepository _importerRepository;
         protected readonly ILicenseeApi _licenseeApi;
         protected readonly ILogger _logger;
@@ -59,9 +61,14 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, maxTimeRange);
 
             await HandleFetchDataAsync(dateRanges);
+
+            if (IsNeedRealData)
+            {
+                await HandleFetchRealDataAsync(dateRanges, apiServerNow);
+            }
         }
 
-        protected async Task<DateTime> GetMinLastedTimeAsync()
+        private async Task<DateTime> GetMinLastedTimeAsync()
         {
             var dates = new List<DateTime>();
             foreach (var site in SupportedSites)
@@ -97,36 +104,51 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
         {
             foreach (var range in dateRanges)
             {
-                int pageIndex = 0;
-                while (true)
+                await HandleImportDataAsync(range.FromDate, range.ToDate);
+
+                await SaveInsertAffMemberTimeTrackerAsync(range.ToDate);
+            }
+        }
+
+        private async Task HandleFetchRealDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges, DateTime apiServerNow)
+        {
+            var lastDateRange = dateRanges.LastOrDefault();
+
+            if (lastDateRange.ToDate != default(DateTime))
+            {
+                await HandleImportDataAsync(lastDateRange.ToDate, apiServerNow.AddSeconds(-5));
+            }
+        }
+
+        private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate)
+        {
+            int pageIndex = 0;
+            while (true)
+            {
+                var data = await _licenseeApi.GetAffCustomerAsync(fromDate, toDate, pageIndex, BATCH_COUNT);
+                if (!data.Any())
                 {
-                    var data = await _licenseeApi.GetAffCustomerAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
-                    if (!data.Any())
-                    {
-                        break;
-                    }
+                    break;
+                }
 
-                    var insertMemberCommands = GetImportingData(data);
-                    foreach (var command in insertMemberCommands)
+                var insertMemberCommands = GetImportingData(data);
+                foreach (var command in insertMemberCommands)
+                {
+                    if (SupportedSites.Any(supportSiteCode => string.Compare(supportSiteCode, command.SiteName, StringComparison.OrdinalIgnoreCase) == 0))
                     {
-                        if (SupportedSites.Any(supportSiteCode => string.Compare(supportSiteCode, command.SiteName, StringComparison.OrdinalIgnoreCase) == 0))
-                        {
-                            await InsertMembers(command, range.FromDate, range.ToDate);
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data  from {range.FromDate} to {range.ToDate}");
-                        }
+                        await InsertMembers(command, fromDate, toDate);
                     }
-
-                    pageIndex++;
-                    if (data.Count() < BATCH_COUNT)
+                    else
                     {
-                        break;
+                        _logger.LogWarning($"No Import Setting for Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data  from {fromDate} to {toDate}");
                     }
                 }
 
-                await SaveInsertAffMemberTimeTrackerAsync(range.ToDate);
+                pageIndex++;
+                if (data.Count() < BATCH_COUNT)
+                {
+                    break;
+                }
             }
         }
 
@@ -165,7 +187,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             }
         }
 
-        private IEnumerable<InsertMemberInfoCommand> GetImportingData(IEnumerable<AffCustomerModel> customerData)
+        private List<InsertMemberInfoCommand> GetImportingData(IEnumerable<AffCustomerModel> customerData)
         {
             var commandList = new List<InsertMemberInfoCommand>();
             var groupCustomers = customerData.GroupBy(c => c.SiteName);

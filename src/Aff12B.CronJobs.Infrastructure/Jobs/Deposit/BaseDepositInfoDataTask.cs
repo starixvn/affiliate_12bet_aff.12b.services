@@ -18,6 +18,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
         private readonly ITrackerService _trackerService;
 
         private const int MAX_ROW_COUNT = 2000;
+        protected virtual bool IsNeedRealData => false;
 
         public BaseDepositInfoDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
@@ -42,19 +43,48 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
             var timeRange = GetApiMaxTimeRange();
             var apiServerNow = DateTimeHelper.GetApiServerDateTime();
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, timeRange);
+
+            await HandleFetchDataAsync(dateRanges);
+
+            if (IsNeedRealData)
+            {
+                await HandleFetchRealDataAsync(dateRanges, apiServerNow);
+            }
+        }
+
+        private async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
+        {
             foreach (var range in dateRanges)
             {
-                int pageIndex = 0;
-                while (true)
-                {
-                    var data = await _licenseeApi.GetDepositInfo(range.FromDate, range.ToDate, pageIndex, MAX_ROW_COUNT);
-                    if (!data.Any())
-                    {
-                        break;
-                    }
-                    await ImportDataToMultipleRepoAsync(data);
-                    pageIndex++;
+                await HandleImportDataAsync(range.FromDate, range.ToDate);
+            }
+        }
 
+        protected async Task HandleFetchRealDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges, DateTime apiServerNow)
+        {
+            var lastDateRange = dateRanges.LastOrDefault();
+
+            if (lastDateRange.ToDate != default(DateTime))
+            {
+                await HandleImportDataAsync(lastDateRange.ToDate, apiServerNow.AddSeconds(-5), false);
+            }
+        }
+
+        private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate, bool isNeedImportTracker = true)
+        {
+            int pageIndex = 0;
+            while (true)
+            {
+                var data = await _licenseeApi.GetDepositInfo(fromDate, toDate, pageIndex, MAX_ROW_COUNT);
+                if (!data.Any())
+                {
+                    break;
+                }
+                await ImportDataToMultipleRepoAsync(data);
+                pageIndex++;
+
+                if (isNeedImportTracker)
+                {
                     var trackerItem = new TrackerItem
                     {
                         Id = data.Max(_ => _.DepositId),
@@ -66,11 +96,11 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
                             CalledTime = DateTime.Now,
                             KeyValue = JsonConvert.SerializeObject(trackerItem)
                         });
+                }
 
-                    if (data.Count() < MAX_ROW_COUNT)
-                    {
-                        break;
-                    }
+                if (data.Count() < MAX_ROW_COUNT)
+                {
+                    break;
                 }
             }
         }

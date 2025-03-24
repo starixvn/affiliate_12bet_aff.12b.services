@@ -10,6 +10,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
 {
     public class FetchRealDepositInfoDataTask : BaseDepositInfoDataTask
     {
+        protected override bool IsNeedRealData => true;
+
         public FetchRealDepositInfoDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
             , ILogger<FetchDepositInfoDataTask> logger

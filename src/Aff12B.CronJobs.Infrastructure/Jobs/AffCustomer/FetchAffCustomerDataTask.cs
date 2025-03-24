@@ -3,6 +3,7 @@ using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
+using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,6 +11,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 {
     public interface IFetchAffCustomerDataTask : IFetchDataTask
     {
+        [DisableConcurrentExecution(60)]
+        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         Task FetchDataByDateRangeTask();
     }
 

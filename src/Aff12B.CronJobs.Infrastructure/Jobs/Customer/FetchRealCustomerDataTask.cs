@@ -9,6 +9,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
 {
     public class FetchRealCustomerDataTask : BaseCustomerDataTask
     {
+        protected override bool IsNeedRealData => true;
+
         public FetchRealCustomerDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
             , ITrackerService timeTrackerService

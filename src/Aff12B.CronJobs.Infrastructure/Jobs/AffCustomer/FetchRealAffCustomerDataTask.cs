@@ -10,6 +10,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 {
     public sealed class FetchRealAffCustomerDataTask : BaseAffCustomerDataTask, IFetchDataTask
     {
+        protected override bool IsNeedRealData => true;
+
         public FetchRealAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
             , ILogger<FetchAffCustomerDataTask> logger

@@ -13,6 +13,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
     public abstract class BaseCustomerDataTask : FetchDataForMultipleRepositoryTaskBase<CustomerModel>
     {
         protected const int BATCH_COUNT = 2000;
+        protected virtual bool IsNeedRealData => false;
 
         private readonly ITrackerService _timeTrackerService;
         protected readonly ILicenseeApi _liceseeApi;
@@ -43,29 +44,50 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, maxTimeRange);
 
             await HandleFetchDataAsync(dateRanges);
+
+            if (IsNeedRealData)
+            {
+                await HandleFetchRealDataAsync(dateRanges, apiServerNow);
+            }    
         }
 
-        private async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
+        protected async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
         {
             foreach (var range in dateRanges)
             {
-                int pageIndex = 0;
-                while (true)
-                {
-                    var data = await _liceseeApi.GetCustomersAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
-                    if (!data.Any())
-                    {
-                        break;
-                    }
-                    await ImportDataToMultipleRepoAsync(data);
-                    pageIndex++;
-                    if (data.Count() < BATCH_COUNT)
-                    {
-                        break;
-                    }
-                }
+                await HandleImportDataAsync(range.FromDate, range.ToDate);
+
                 var tracker = new TrackerInfo { CalledTime = DateTime.Now, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
                 await _timeTrackerService.SaveTrackerAsync(TableName, tracker);
+            }
+        }
+
+        protected async Task HandleFetchRealDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges, DateTime apiServerNow)
+        {
+            var lastDateRange = dateRanges.LastOrDefault();
+
+            if(lastDateRange.ToDate != default(DateTime))
+            {
+                await HandleImportDataAsync(lastDateRange.ToDate, apiServerNow.AddSeconds(-5));
+            }
+        }
+
+        private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate)
+        {
+            int pageIndex = 0;
+            while (true)
+            {
+                var data = await _liceseeApi.GetCustomersAsync(fromDate, toDate, pageIndex, BATCH_COUNT);
+                if (!data.Any())
+                {
+                    break;
+                }
+                await ImportDataToMultipleRepoAsync(data);
+                pageIndex++;
+                if (data.Count() < BATCH_COUNT)
+                {
+                    break;
+                }
             }
         }
 
