@@ -2,11 +2,11 @@
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 {
-    public class InsertAffMemberTimeTrackerCommand(string prefixProvider) : IdenticalSuffixNonQueryCommand(prefixProvider), IInsertAffMemberTimeTracker
+    public class InsertAffMemberTimeTrackerCommand(string prefixProvider, string spName) : IdenticalSuffixNonQueryCommand(prefixProvider), IInsertAffMemberTimeTracker
     {
         public DateTime LastImportedTime { get; set; }
 
-        public string SName => "MemberInfoLastImportedTime";
+        public string SName => spName;
 
         protected override string SuffixSettingKey => "Task_Aff_MemberInfo_ImportedTime";
 
