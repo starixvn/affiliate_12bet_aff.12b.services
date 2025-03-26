@@ -234,6 +234,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
                             , $"istest=\"{HttpUtility.HtmlEncode(customer?.IsTest)}\""
                             , $"affcode=\"{HttpUtility.HtmlEncode(customer?.AffCode)}\""
                             , $"affmedialinkid=\"{HttpUtility.HtmlEncode(customer?.AffMediaLinkId)}\""
+                            , $"clickid=\"{HttpUtility.HtmlEncode(customer?.ClickId)}\""
                             , "/>");
                         return builder.ToString();
                     }));
