@@ -6,7 +6,7 @@
 
         public int CustId { get; set; }
 
-        public byte CurrencyId { get; set; }
+        public int CurrencyId { get; set; }
 
         public byte RebateType { get; set; }
 
