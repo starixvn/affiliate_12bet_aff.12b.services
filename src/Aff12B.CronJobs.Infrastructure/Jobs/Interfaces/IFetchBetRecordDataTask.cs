@@ -4,7 +4,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Interfaces
 {
     public interface IFetchBetRecordDataTask : IFetchDataTask
     {
-        [DisableConcurrentExecution(60)]
+        [DisableConcurrentExecution(120)]
         [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Delete, Attempts = 1)]
         Task FetchLastMonthAsync();
 

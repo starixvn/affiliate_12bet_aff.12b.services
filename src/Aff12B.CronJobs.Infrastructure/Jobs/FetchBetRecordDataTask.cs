@@ -35,8 +35,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             _timeTrackerService = timeTrackerService;
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public override async Task FetchDataAsync()
         {
             var fromDate = await GetLastTimeFetchDateAsync();
@@ -44,8 +42,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             await FetchDataAndTrackTimeAsync(fromDate, toDate);
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task FetchDataAsync(DateTime fromDate, DateTime toDate)
         {
             var intervalTime = GetApiMaxTimeRange();
@@ -64,8 +60,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             }
         }
 
-        [DisableConcurrentExecution(120)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task FetchLastMonthAsync()
         {
             var now = DateTime.Now;
@@ -75,8 +69,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             await FetchDataAsync(firstDayLastMonth, firstDayThisMonth);
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task FetchFromAdjusmentDayAsync(int day)
         {
             var lastFetchDate = await GetLastTimeFetchDateAsync();
@@ -85,8 +77,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             await FetchDataAsync(fromDate, toDate);
         }
 
-        [DisableConcurrentExecution(60)]
-        [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
+
         public async Task FetchAllDay(int adjustHour)
         {
             var lastFetchDate = await GetLastTimeFetchDateAsync();
