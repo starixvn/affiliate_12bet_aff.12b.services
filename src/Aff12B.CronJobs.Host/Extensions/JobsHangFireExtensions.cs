@@ -272,11 +272,15 @@ namespace Aff12B.CronJobs.Host.Extensions
 
         private static void RegisterRetryDataTask(IConfiguration configuration)
         {
-            var supportedPrefix = configuration.GetSection("App").Get<AppSetting>().SupportDBPrefix;
-            var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
+            var appSetting = configuration.GetSection("App").Get<AppSetting>();
 
-            RegisterTask<ReInsertAffiliateInfoDataTask>($"{typeof(ReInsertAffiliateInfoDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
-            RegisterTask<InitialInsertAffInfoDataTask>(typeof(InitialInsertAffInfoDataTask).Name, listJobDic[INITIAL_INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
+            if(appSetting.IsApiDataModifiable)
+            {
+                var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
+
+                RegisterTask<ReInsertAffiliateInfoDataTask>($"{typeof(ReInsertAffiliateInfoDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
+                RegisterTask<InitialInsertAffInfoDataTask>(typeof(InitialInsertAffInfoDataTask).Name, listJobDic[INITIAL_INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
+            }
         }
 
         private static void RegisterTask<T>(string serviceId, string cronExpression, Expression<Func<T, Task>> methodCall)
