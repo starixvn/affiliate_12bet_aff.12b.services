@@ -26,7 +26,7 @@ namespace Aff12B.CronJobs.Host
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
-            AddHangFireService(services);
+            //AddHangFireService(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,8 +51,8 @@ namespace Aff12B.CronJobs.Host
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
 
-            app.UseHangFire("/jobs");
-            app.UseRecuringJobs(configuration);
+            //app.UseHangFire("/jobs");
+            //app.UseRecuringJobs(configuration);
 
             app.UseRouting();
 
