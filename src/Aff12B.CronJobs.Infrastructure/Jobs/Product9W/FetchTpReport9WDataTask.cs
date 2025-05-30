@@ -16,6 +16,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
          ITrackerService timeTrackerService,
          IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TpReport9WModel>(thirdPartyRepo, configuration.Get(ServiceConfigName.PULL_TPREPORT_9W_SETTING), timeTrackerService)
     {
+        private const int TpReport_MAX_ROW_COUNT = 3000;
+
+        protected override int PagingSize => TpReport_MAX_ROW_COUNT;
 
         protected override async Task<IEnumerable<TpReport9WModel>> GetDataAsync(string trackValue, int batchCount)
         {
