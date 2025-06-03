@@ -26,6 +26,9 @@ namespace Aff12B.CronJobs.Host
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
+            var appSetting = configuration.GetSection("App").Get<AppSetting>();
+
+            services.AddApi(appSetting, configuration);
             //AddHangFireService(services);
         }
 

@@ -91,7 +91,7 @@ namespace Aff12B.CronJobs.Host.Extensions
             return services;
         }
 
-        private static IServiceCollection AddApi(this IServiceCollection services, AppSetting appSettings, IConfiguration configuration)
+        public static IServiceCollection AddApi(this IServiceCollection services, AppSetting appSettings, IConfiguration configuration)
         {
             var proxySetting = configuration.GetSection("ProxySetting").Get<ProxySetting>();
             Func<HttpClientHandler> defaultFuncHttpHandler = () => new HttpClientHandler()
