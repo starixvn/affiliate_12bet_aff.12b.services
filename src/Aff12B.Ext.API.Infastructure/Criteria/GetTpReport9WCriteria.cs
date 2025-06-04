@@ -1,16 +1,23 @@
-﻿using Fanex.Data.Repository;
-
+﻿using Fanex.Data;
+using Fanex.Data.Repository;
 
 namespace Aff12B.Ext.API.Infastructure.Criteria
 {
     public class GetTpReport9WCriteria : CriteriaBase
     {
+        [SpParam(SqlParamName = "_SQ")]
+        public long SQ { get; set; }
+
+        [SpParam(SqlParamName = "_FromDate")]
         public DateTime FromDate { get; set; }
 
+        [SpParam(SqlParamName = "_ToDate")]
         public DateTime ToDate { get; set; }
 
+        [SpParam(SqlParamName = "_PageIndex")]
         public int PageIndex { get; set; }
 
+        [SpParam(SqlParamName = "_PageSize")]
         public int PageSize { get; set; }
 
         public override string GetSettingKey()

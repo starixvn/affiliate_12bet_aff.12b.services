@@ -48,7 +48,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
             if (IsNeedRealData)
             {
                 await HandleFetchRealDataAsync(dateRanges, apiServerNow);
-            }    
+            }
         }
 
         protected async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
@@ -66,7 +66,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
         {
             var lastDateRange = dateRanges.LastOrDefault();
 
-            if(lastDateRange.ToDate != default(DateTime))
+            if (lastDateRange.ToDate != default(DateTime))
             {
                 await HandleImportDataAsync(lastDateRange.ToDate, apiServerNow.AddSeconds(-5));
             }

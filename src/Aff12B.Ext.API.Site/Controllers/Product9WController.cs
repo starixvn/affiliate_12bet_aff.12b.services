@@ -24,6 +24,7 @@ namespace Aff12B.Ext.API.Site.Controllers
         public async Task<IEnumerable<TpReport9WModel>> GetTpReport([FromQuery] BaseParam param)
             => await _dynamicRepository.FetchAsync<TpReport9WModel>(new GetTpReport9WCriteria
             {
+                SQ = param.SQ,
                 FromDate = param.FromDate,
                 ToDate = param.ToDate,
                 PageIndex = param.PageIndex,
