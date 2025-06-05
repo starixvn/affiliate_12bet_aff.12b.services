@@ -64,7 +64,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             }
         }
 
-        [DisableConcurrentExecution(60)]
+        [DisableConcurrentExecution(120)]
         [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
         public async Task FetchLastMonthAsync()
         {

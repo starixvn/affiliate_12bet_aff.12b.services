@@ -21,6 +21,6 @@
   </Function>
   <Function Name="9W">
     <Setting Key="API_TpReport9W_Get" SpName="API_TpReport9W_Get_V2" DbName="12BMemberSite.BetDetail.Affiliate_Api"/>
-    <Setting Key="API_TpWager9W_Get" SpName="API_TpWager9W_Get" DbName="12BMemberSite.BetDetail.Affiliate_Api"/>  
+    <Setting Key="API_TpWager9W_Get" SpName="API_TpWager9W_Get_V2" DbName="12BMemberSite.BetDetail.Affiliate_Api"/>  
   </Function>
 </Functions>
