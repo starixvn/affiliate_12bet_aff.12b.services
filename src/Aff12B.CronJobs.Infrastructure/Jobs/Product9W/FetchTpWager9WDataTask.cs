@@ -30,10 +30,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
 
         protected override CreateTimeTrackerInfo GetInsertTrackingValue(IEnumerable<TpWager9WModel> data)
         {
+            var lastItem = data.LastOrDefault();
+
             return new CreateTimeTrackerInfo
             {
-                CreateTime = data.Max(_ => _.CreateTime.Value),
-                UpdateTime = data.Max(_ => _.UpdateTime.Value),
+                CreateTime = lastItem.CreateTime.Value,
+                UpdateTime = lastItem.UpdateTime.Value,
             };
         }
 

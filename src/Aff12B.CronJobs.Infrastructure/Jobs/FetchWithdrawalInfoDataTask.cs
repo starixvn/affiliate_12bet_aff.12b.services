@@ -6,7 +6,6 @@ using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
 {
