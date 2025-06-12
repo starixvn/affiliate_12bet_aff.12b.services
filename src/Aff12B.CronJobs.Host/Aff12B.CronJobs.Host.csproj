@@ -29,6 +29,14 @@
     <ProjectReference Include="..\Aff12B.CronJobs.Infrastructure\Aff12B.CronJobs.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.KLPROD.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 
   <ItemGroup>
     <None Update="App_Data\SpNames.xml">
