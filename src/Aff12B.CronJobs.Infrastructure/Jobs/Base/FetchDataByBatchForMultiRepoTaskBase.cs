@@ -4,10 +4,11 @@ using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Hangfire;
+using Newtonsoft.Json;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
 {
-    public abstract class FetchDataByBatchForMultiRepoTaskBase<TData>(IThirdPartyImportRepository thirdPartyImportRepository, FetchServiceSetting setting, ITrackerService trackerService) : FetchDataForMultipleRepositoryTaskBase<TData>(thirdPartyImportRepository, setting)
+    public abstract class FetchDataByBatchForMultiRepoTaskBase<TData, TTracker>(IThirdPartyImportRepository thirdPartyImportRepository, FetchServiceSetting setting, ITrackerService trackerService) : FetchDataForMultipleRepositoryTaskBase<TData>(thirdPartyImportRepository, setting)
         where TData : class
     {
         protected const int MAX_ROW_COUNT = 2000;
@@ -33,11 +34,13 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
             {
                 await ImportDataToMultipleRepoAsync(importData);
                 var trackValue = GetInsertTrackingValue(importData);
+                var keyValue = trackValue is string ? trackValue as string : JsonConvert.SerializeObject(trackValue);
+
                 await _timeTrackerService.SaveTrackerAsync(TableName,
                     new TrackerInfo
                     {
                         CalledTime = DateTime.Now,
-                        KeyValue = trackValue
+                        KeyValue = keyValue
                     });
 
                 if (importData.Count() == PagingSize)
@@ -51,11 +54,11 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
             }
         }
 
-        protected abstract Task<IEnumerable<TData>> GetDataAsync(string trackValue, int batchCount);
+        protected abstract Task<IEnumerable<TData>> GetDataAsync(TTracker trackValue, int batchCount);
 
-        protected abstract string GetInsertTrackingValue(IEnumerable<TData> data);
+        protected abstract TTracker GetInsertTrackingValue(IEnumerable<TData> data);
 
-        protected abstract Task<string> GetLastTrackingValueAsync();
+        protected abstract Task<TTracker> GetLastTrackingValueAsync();
 
         protected override string BuildXml(IEnumerable<TData> data)
              => XmlHelper.BuildXml(data, "root", "row");

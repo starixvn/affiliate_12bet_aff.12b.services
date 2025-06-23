@@ -11,7 +11,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Bonus
     public class FetchBonusInfoDataTask(ILicenseeApi licenseeApi,
         IThirdPartyImportRepository thirdPartyRepo,
         ITrackerService timeTrackerService,
-        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<BonusModel>(thirdPartyRepo, configuration.Get(Constants.ServiceConfigName.PULL_BONUS_INFO_SETTING), timeTrackerService)
+        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<BonusModel, string>(thirdPartyRepo, configuration.Get(Constants.ServiceConfigName.PULL_BONUS_INFO_SETTING), timeTrackerService)
     {
         protected override int PagingSize => 500;
 

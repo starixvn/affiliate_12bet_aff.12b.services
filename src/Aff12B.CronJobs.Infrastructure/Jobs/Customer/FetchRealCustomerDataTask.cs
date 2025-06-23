@@ -16,6 +16,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
             , ITrackerService timeTrackerService
             , IOptionsSnapshot<FetchServiceSetting> setting)
             : base(thirdPartyImportRepository, licenseeApi, timeTrackerService, setting.Get(ServiceConfigName.PULL_REAL_CUSTOMER_SETTING))
-                { }
+        { }
     }
 }
