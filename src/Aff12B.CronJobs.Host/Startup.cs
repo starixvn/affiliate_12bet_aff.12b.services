@@ -29,7 +29,7 @@ namespace Aff12B.CronJobs.Host
             var appSetting = configuration.GetSection("App").Get<AppSetting>();
 
             services.AddApi(appSetting, configuration);
-            //AddHangFireService(services);
+            AddHangFireService(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,8 +54,8 @@ namespace Aff12B.CronJobs.Host
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
 
-            //app.UseHangFire("/jobs");
-            //app.UseRecuringJobs(configuration);
+            app.UseHangFire("/jobs");
+            app.UseRecuringJobs(configuration);
 
             app.UseRouting();
 
@@ -80,6 +80,7 @@ namespace Aff12B.CronJobs.Host
                 KeepAlive = 180,
                 EndPoints = { { redisConfig.Server, redisConfig.Port } },
                 Password = redisConfig.Pass,
+                AbortOnConnectFail = false,
                 DefaultDatabase = redisConfig.Database,
             });
 

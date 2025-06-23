@@ -265,9 +265,9 @@ namespace Aff12B.CronJobs.Host.Extensions
 
             RegisterTask<FetchRebateMLogDataTask>($"{typeof(FetchRebateMLogDataTask).Name}", listJobDic[PULL_REBATEMLOG_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
-            RegisterTask<FetchTpReport9WDataTask>($"{typeof(FetchTpReport9WDataTask).Name}", listJobDic[PULL_TPREPORT_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            //RegisterTask<FetchTpReport9WDataTask>($"{typeof(FetchTpReport9WDataTask).Name}", listJobDic[PULL_TPREPORT_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
-            RegisterTask<FetchTpWager9WDataTask>($"{typeof(FetchTpWager9WDataTask).Name}", listJobDic[PULL_TPWAGER_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
+            //RegisterTask<FetchTpWager9WDataTask>($"{typeof(FetchTpWager9WDataTask).Name}", listJobDic[PULL_TPWAGER_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
         }
 
         private static void RegisterRetryDataTask(IConfiguration configuration)
