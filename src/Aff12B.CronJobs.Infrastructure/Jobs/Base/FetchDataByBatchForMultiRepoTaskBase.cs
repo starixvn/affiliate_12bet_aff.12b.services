@@ -8,7 +8,8 @@ using Newtonsoft.Json;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
 {
-    public abstract class FetchDataByBatchForMultiRepoTaskBase<TData, TTracker>(IThirdPartyImportRepository thirdPartyImportRepository, FetchServiceSetting setting, ITrackerService trackerService) : FetchDataForMultipleRepositoryTaskBase<TData>(thirdPartyImportRepository, setting)
+    public abstract class FetchDataByBatchForMultiRepoTaskBase<TData, TTracker>(IThirdPartyImportRepository thirdPartyImportRepository, FetchServiceSetting setting, ITrackerService trackerService)
+        : FetchDataForMultipleRepositoryTaskBase<TData>(thirdPartyImportRepository, setting)
         where TData : class
     {
         protected const int MAX_ROW_COUNT = 2000;
@@ -39,7 +40,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
                 await _timeTrackerService.SaveTrackerAsync(TableName,
                     new TrackerInfo
                     {
-                        CalledTime = DateTime.Now,
+                        CalledTime = DateTimeOffset.Now.DateTime,
                         KeyValue = keyValue
                     });
 

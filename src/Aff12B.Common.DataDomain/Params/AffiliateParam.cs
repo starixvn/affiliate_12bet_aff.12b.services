@@ -1,4 +1,4 @@
-﻿namespace Aff12B.Ext.API.Infastructure.Params
+﻿namespace Aff12B.Common.DataDomain.Params
 {
     public class AffiliateParam
     {

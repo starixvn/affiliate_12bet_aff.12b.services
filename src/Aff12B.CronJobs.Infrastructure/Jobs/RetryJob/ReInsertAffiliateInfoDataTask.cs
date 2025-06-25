@@ -3,7 +3,7 @@ using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Aff12B.Ext.API.Infastructure.Params;
+using Aff12B.Common.DataDomain.Params;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

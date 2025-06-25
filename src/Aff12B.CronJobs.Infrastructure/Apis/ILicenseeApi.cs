@@ -1,6 +1,6 @@
 ﻿using Aff12B.Common.DataDomain.Api;
 using Aff12B.Common.DataDomain.Models;
-using Aff12B.Ext.API.Infastructure.Params;
+using Aff12B.Common.DataDomain.Params;
 using Refit;
 
 namespace Aff12B.CronJobs.Infrastructure.Apis
