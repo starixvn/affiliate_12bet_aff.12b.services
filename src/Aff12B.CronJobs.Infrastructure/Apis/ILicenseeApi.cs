@@ -7,7 +7,7 @@ namespace Aff12B.CronJobs.Infrastructure.Apis
 {
     public interface ILicenseeApi
     {
-        [Get("/Home/Index")]
+        [Get("/test/index")]
         Task<string> CheckConnection();
 
         [Get("/customer/GetAffCustomers")]

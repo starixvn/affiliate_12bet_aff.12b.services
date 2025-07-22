@@ -4,6 +4,8 @@
     {
         public string LicenseeDataAPI { get; set; }
 
+        public bool IsApiDataModifiable { get; set; }
+
         public IEnumerable<string> SupportDBPrefix { get; set; }
     }
 }

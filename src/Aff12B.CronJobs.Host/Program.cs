@@ -1,4 +1,5 @@
 using Aff12B.CronJobs.Host;
+using Aff12B.CronJobs.Infrastructure.Apis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,12 @@ startup.ConfigureServices(builder.Services);
 
 var app = builder.Build();
 app.MapGet("/", () => "Hello, Welcome to 12B CronJobs!");
+app.MapGet("/test/accessapi", () =>
+{
+    var api = app.Services.GetRequiredService<ILicenseeApi>();
+
+    return api.CheckConnection();
+});
 
 // Configure the HTTP request pipeline.
 startup.Configure(app, app.Environment);

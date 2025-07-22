@@ -26,6 +26,9 @@ namespace Aff12B.CronJobs.Host
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
+            var appSetting = configuration.GetSection("App").Get<AppSetting>();
+
+            services.AddApi(appSetting, configuration);
             AddHangFireService(services);
         }
 
@@ -77,6 +80,7 @@ namespace Aff12B.CronJobs.Host
                 KeepAlive = 180,
                 EndPoints = { { redisConfig.Server, redisConfig.Port } },
                 Password = redisConfig.Pass,
+                AbortOnConnectFail = false,
                 DefaultDatabase = redisConfig.Database,
             });
 
