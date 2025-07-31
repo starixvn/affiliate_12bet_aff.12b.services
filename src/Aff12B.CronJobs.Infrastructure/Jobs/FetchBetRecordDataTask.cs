@@ -8,7 +8,6 @@ using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

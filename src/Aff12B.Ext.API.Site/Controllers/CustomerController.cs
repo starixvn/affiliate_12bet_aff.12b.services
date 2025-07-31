@@ -1,9 +1,9 @@
 using Aff12B.Common.DataDomain.Api;
 using Aff12B.Common.DataDomain.Models;
+using Aff12B.Common.DataDomain.Params;
 using Aff12B.Ext.API.Infastructure.Command;
 using Aff12B.Ext.API.Infastructure.Criteria;
 using Aff12B.Ext.API.Infastructure.Params;
-using Aff12B.Common.DataDomain.Params;
 using Fanex.Data.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

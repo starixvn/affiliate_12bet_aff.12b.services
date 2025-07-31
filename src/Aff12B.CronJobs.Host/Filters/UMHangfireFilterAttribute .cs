@@ -6,12 +6,13 @@ using ONEbook.UM.Services;
 namespace Aff12B.CronJobs.Host.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Interface)]
-    public class UMHangfireFilterAttribute(IMaintenanceService maintenanceService) : JobFilterAttribute, IClientFilter, IServerFilter
+    public class UMHangfireFilterAttribute(IMaintenanceService maintenanceService, ILogger<UMHangfireFilterAttribute> logger) : JobFilterAttribute, IClientFilter, IServerFilter
     {
         public void OnCreating(CreatingContext context)
         {
             if (maintenanceService.IsUnderMaintenance())
             {
+                logger.LogInformation("Aff12B.CronJobs Is Under Maintenance!");
                 context.Canceled = true;
             }
         }
@@ -25,6 +26,7 @@ namespace Aff12B.CronJobs.Host.Filters
         {
             if (maintenanceService.IsUnderMaintenance())
             {
+                logger.LogInformation("Aff12B.CronJobs Is Under Maintenance!");
                 context.Canceled = true;
             }
         }

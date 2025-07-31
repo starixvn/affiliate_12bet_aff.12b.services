@@ -22,7 +22,6 @@ namespace Aff12B.CronJobs.Host
             services.AddMemoryCache();
             services.Configure<SentryAspNetCoreOptions>(configuration.GetSection("Sentry"));
             services.AddLogging();
-            services.AddUnderMaintenance(configuration);
             services.AddHttpClient();
             services.AddSiteHealthChecks(configuration);
 
@@ -77,7 +76,7 @@ namespace Aff12B.CronJobs.Host
             var redisConfig = configuration.GetSection("Redis").Get<RedisSetting>();
             var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions
             {
-                KeepAlive = 180,
+                KeepAlive = redisConfig.KeepAlive,
                 EndPoints = { { redisConfig.Server, redisConfig.Port } },
                 Password = redisConfig.Pass,
                 AbortOnConnectFail = false,

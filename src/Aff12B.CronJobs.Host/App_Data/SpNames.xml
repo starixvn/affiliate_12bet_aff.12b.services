@@ -1,18 +1,21 @@
 ﻿<Functions>
-  <Function Name="Affiliate_12B">
-    <Setting Key="12B_Task_Aff_MemberInfo_Import" SpName="Task_Aff_MemberInfo_Import" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
-    <Setting Key="12B_Task_Aff_GetSetting" SpName ="Task_Aff_GetSetting" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
-    <Setting Key="12B_Task_Aff_MemberInfo_ImportedTime" SpName="Task_Aff_MemberInfo_ImportedTime" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
-    <Setting Key="12B_Aff_API_AffiliateDetailInfo_Sel" SpName="Aff_API_AffiliateDetailInfo_Sel" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
-  </Function>
-  <Funtion Name="ThirdPartyImport">
-    <Setting Key="Master_Task_API_Queue_Import" SpName="Task_API_Queue_Import" DbName="DB052.bodb_12B.wsv_lap"/>
-    <Setting Key="Master_Task_API_TimeTracker_Sel" SpName="Task_API_TimeTracker_Sel" DbName="DB052.bodb_12B.wsv_lap"/>
-    <Setting Key="Master_Task_API_TimeTracker_Import" SpName="Task_API_TimeTracker_Import" DbName="DB052.bodb_12B.wsv_lap"/>
-  </Funtion>
-  <Function Name="DataTracker">
-    <Setting Key="Master_Task_API_PushDataTracker_Sel" SpName="Task_API_PushDataTracker_Sel" DbName="DB052.bodb_12B.wsv_lap"/>
-    <Setting Key="Master_Task_API_PushDataTracker_Upd" SpName="Task_API_PushDataTracker_Upd" DbName="DB052.bodb_12B.wsv_lap"/>
-    <Setting Key="Master_Task_API_PushDataTracker_Import" SpName="Task_API_PushDataTracker_Import" DbName="DB052.bodb_12B.wsv_lap"/>
-  </Function>
+    <Function Name="Affiliate_12B">
+        <Setting Key="12B_Task_Aff_MemberInfo_Import" SpName="Task_Aff_MemberInfo_Import" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
+        <Setting Key="12B_Task_Aff_GetSetting" SpName ="Task_Aff_GetSetting" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
+        <Setting Key="12B_Task_Aff_MemberInfo_ImportedTime" SpName="Task_Aff_MemberInfo_ImportedTime" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
+        <Setting Key="12B_Aff_API_AffiliateDetailInfo_Sel" SpName="Aff_API_AffiliateDetailInfo_Sel" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
+    </Function>
+    <Function Name="Affiliate_12B_MediaLinkMasterDataValidationCache">
+	    <Setting Key="12B_Aff_ClickStatistics_BulkCache" SpName="Aff_ClickStatistics_BulkCache_xtest" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
+    </Function>
+    <Funtion Name="ThirdPartyImport">
+        <Setting Key="Master_Task_API_Queue_Import" SpName="Task_API_Queue_Import" DbName="DB052.bodb_12B.wsv_lap"/>
+        <Setting Key="Master_Task_API_TimeTracker_Sel" SpName="Task_API_TimeTracker_Sel" DbName="DB052.bodb_12B.wsv_lap"/>
+        <Setting Key="Master_Task_API_TimeTracker_Import" SpName="Task_API_TimeTracker_Import" DbName="DB052.bodb_12B.wsv_lap"/>
+    </Funtion>
+    <Function Name="DataTracker">
+        <Setting Key="Master_Task_API_PushDataTracker_Sel" SpName="Task_API_PushDataTracker_Sel" DbName="DB052.bodb_12B.wsv_lap"/>
+        <Setting Key="Master_Task_API_PushDataTracker_Upd" SpName="Task_API_PushDataTracker_Upd" DbName="DB052.bodb_12B.wsv_lap"/>
+        <Setting Key="Master_Task_API_PushDataTracker_Import" SpName="Task_API_PushDataTracker_Import" DbName="DB052.bodb_12B.wsv_lap"/>
+    </Function>
 </Functions>
