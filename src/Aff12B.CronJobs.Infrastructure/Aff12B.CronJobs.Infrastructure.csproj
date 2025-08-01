@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Aff12B.Common.DataDomain\Aff12B.Common.DataDomain.csproj" />
+    <ProjectReference Include="..\Aff12B.Common.Infrastructure\Aff12B.Common.Infrastructure.csproj" />
     <ProjectReference Include="..\Aff12B.CronJobs.Core\Aff12B.CronJobs.Core.csproj" />
   </ItemGroup>
 

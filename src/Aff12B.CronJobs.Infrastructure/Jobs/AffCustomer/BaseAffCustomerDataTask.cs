@@ -1,4 +1,5 @@
 ﻿using Aff12B.Common.DataDomain.Models;
+using Aff12B.Common.Infrastructure.Helpers;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;

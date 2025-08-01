@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Aff12B.Common.Infrastructure\Aff12B.Common.Infrastructure.csproj" />
     <ProjectReference Include="..\Aff12B.CronJobs.Infrastructure\Aff12B.CronJobs.Infrastructure.csproj" />
   </ItemGroup>
 

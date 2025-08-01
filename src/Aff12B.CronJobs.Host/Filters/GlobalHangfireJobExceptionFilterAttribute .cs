@@ -1,4 +1,4 @@
-﻿using Aff12B.CronJobs.Infrastructure.Helpers;
+﻿using Aff12B.Common.Infrastructure.Helpers;
 using Hangfire.Common;
 using Hangfire.States;
 using System.Text;

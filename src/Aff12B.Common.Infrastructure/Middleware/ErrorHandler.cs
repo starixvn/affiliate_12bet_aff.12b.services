@@ -1,7 +1,9 @@
-﻿using Aff12B.CronJobs.Infrastructure.Helpers;
+using Aff12B.Common.Infrastructure.Helpers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace Aff12B.CronJobs.Host.Middleware
+namespace Aff12B.Common.Infrastructure.Middleware
 {
     public class ErrorHandler
     {
@@ -30,9 +32,9 @@ namespace Aff12B.CronJobs.Host.Middleware
         {
             var errorMsg = ErrorMessageHelper.GenerateMessage(exception, context);
             _logger.LogCritical(exception, errorMsg);
-            context.Response.Clear();
+
+            context.Response.Headers.Clear();
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         }
-
     }
 }

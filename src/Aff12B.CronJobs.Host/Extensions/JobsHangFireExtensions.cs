@@ -23,7 +23,7 @@ using Fanex.Data.Repository;
 using Hangfire;
 using ONEbook.UM.DependencyInjection;
 using Refit;
-using StackExchange.Redis;
+
 using System.Linq.Expressions;
 using System.Net;
 using static Aff12B.CronJobs.Infrastructure.Constants.ServiceConfigName;

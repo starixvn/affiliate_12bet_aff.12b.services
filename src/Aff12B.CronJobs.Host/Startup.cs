@@ -1,6 +1,6 @@
+using Aff12B.Common.Infrastructure.Middleware;
 using Aff12B.CronJobs.Host.Extensions;
 using Aff12B.CronJobs.Host.Filters;
-using Aff12B.CronJobs.Host.Middleware;
 using Aff12B.CronJobs.Host.Settings;
 using Fanex.Data.SqlServer;
 using Hangfire;

@@ -1,43 +1,15 @@
-﻿
 using Fanex.Data;
+using Microsoft.AspNetCore.Http;
 using MySqlConnector;
-using System.Net;
+using Refit;
+using System.Data.SqlClient;
 using System.Text;
 
-namespace Aff12B.Ext.API.Site.Middleware
+namespace Aff12B.Common.Infrastructure.Helpers
 {
-    public class ErrorHandler
+    public static class ErrorMessageHelper
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ErrorHandler> _logger;
-
-        public ErrorHandler(RequestDelegate next, ILogger<ErrorHandler> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
-        public async Task Invoke(HttpContext context)
-        {
-            try
-            {
-                await _next.Invoke(context);
-            }
-            catch (Exception exception)
-            {
-                HandleError(context, exception);
-            }
-        }
-
-        private void HandleError(HttpContext context, Exception exception)
-        {
-            var errorMsg = GenerateMessage(exception, context);
-            _logger.LogCritical(exception, errorMsg);
-            context.Response.Clear();
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-        }
-
-        private string GenerateMessage(Exception exception, HttpContext context)
+        public static string GenerateMessage(Exception exception, HttpContext context = null)
         {
             var messageBuilder = new StringBuilder();
 
@@ -47,6 +19,10 @@ namespace Aff12B.Ext.API.Site.Middleware
             {
                 AddRequestInfo(context, messageBuilder);
             }
+            if (exception is ApiException apiException)
+            {
+                AddApiException(apiException, messageBuilder);
+            }
 
             AddDatabaseInfo(messageBuilder, exception);
 
@@ -54,6 +30,15 @@ namespace Aff12B.Ext.API.Site.Middleware
             AddExceptionInfo(messageBuilder, exception, limitedNumOfInnerException);
 
             return messageBuilder.ToString();
+        }
+
+        private static void AddApiException(ApiException apiException, StringBuilder messageBuilder)
+        {
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine("API INFO");
+            messageBuilder.AppendLine($"Url: {apiException.Uri.ToString()}");
+            messageBuilder.AppendLine($"Method: {apiException.HttpMethod.Method}");
+            messageBuilder.AppendLine($"Content: {apiException.Content}");
         }
 
         private static void AddRequestInfo(HttpContext context, StringBuilder builder)
@@ -100,6 +85,7 @@ namespace Aff12B.Ext.API.Site.Middleware
         private static IDictionary<string, object> GetDbExceptionInfo(Exception exception)
         {
             var dbInfo = new Dictionary<string, object>();
+            BindSqlExceptionInfo(exception, dbInfo);
             BindFanexDataExceptionInfo(exception, dbInfo);
             return dbInfo;
         }
@@ -108,15 +94,47 @@ namespace Aff12B.Ext.API.Site.Middleware
         {
             if (exception is ObjectDbException fanexDataException)
             {
+                BindSqlExceptionInfo(exception.InnerException, dbInfo);
 
-                var connString = new MySqlConnectionStringBuilder(fanexDataException.ConnectionString);
+                // Try to determine if it's a MySQL or SQL Server connection string
+                try
+                {
+                    // First try MySQL connection string
+                    var mySqlConnString = new MySqlConnectionStringBuilder(fanexDataException.ConnectionString);
+                    dbInfo["Server"] = mySqlConnString.Server;
+                    dbInfo["UserId"] = mySqlConnString.UserID;
+                }
+                catch
+                {
+                    try
+                    {
+                        // Fallback to SQL Server connection string
+                        var sqlConnString = new SqlConnectionStringBuilder(fanexDataException.ConnectionString);
+                        dbInfo["Server"] = sqlConnString.DataSource;
+                        dbInfo["UserId"] = sqlConnString.UserID;
+                    }
+                    catch
+                    {
+                        // If both fail, just use the raw connection string
+                        dbInfo["Server"] = "Unknown";
+                        dbInfo["UserId"] = "Unknown";
+                    }
+                }
 
-                dbInfo["Server"] = connString.Server;
                 dbInfo["DbName"] = fanexDataException.DbName;
                 dbInfo["SpName"] = fanexDataException.SpName;
-                dbInfo["UserId"] = connString.UserID;
                 dbInfo["Parameters"] = GetParameters(fanexDataException.Parameters);
                 dbInfo["CommandTimeout"] = fanexDataException.CommandTimeout;
+            }
+        }
+
+        private static void BindSqlExceptionInfo(Exception exception, IDictionary<string, object> dbInfo)
+        {
+            if (exception is SqlException sqlException)
+            {
+                dbInfo["Server"] = sqlException.Server;
+                dbInfo["SpName"] = sqlException.Procedure;
+                dbInfo["Line"] = sqlException.LineNumber;
             }
         }
 
@@ -125,7 +143,6 @@ namespace Aff12B.Ext.API.Site.Middleware
                ? parameters.Select(parameter => $"{parameter.Key}={parameter.Value}")
                         .Aggregate((firstPair, secondPair) => $"{firstPair};{secondPair}")
                : string.Empty;
-
 
         private static IDictionary<string, object> GetRequestInfo(HttpContext context)
         {

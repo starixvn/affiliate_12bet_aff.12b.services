@@ -1,6 +1,6 @@
+using Aff12B.Common.Infrastructure.Middleware;
 using Aff12B.Ext.API.Infastructure.ConfigurationModel;
 using Aff12B.Ext.API.Infastructure.Extentions;
-using Aff12B.Ext.API.Site.Middleware;
 using Fanex.Data.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;

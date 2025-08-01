@@ -1,17 +1,19 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Aff12B.CronJobs.Host.Middleware
+namespace Aff12B.Common.Infrastructure.Middleware
 {
     public class WhoAmIHealthCheck : IHealthCheck
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWebHostEnvironment _env;
+        private readonly IHostEnvironment _env;
 
-        public WhoAmIHealthCheck(IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
+        public WhoAmIHealthCheck(IHttpContextAccessor httpContextAccessor, IHostEnvironment env)
         {
             _httpContextAccessor = httpContextAccessor;
             _env = env;

@@ -1,10 +1,10 @@
-﻿using Aff12B.CronJobs.Core.Domain.DTOs;
+﻿using Aff12B.Common.Infrastructure.Helpers;
+using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Exceptions;
-using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.SpParams;
 using Aff12B.CronJobs.Infrastructure.SpParams.Commands;
 using Microsoft.Extensions.Logging;
