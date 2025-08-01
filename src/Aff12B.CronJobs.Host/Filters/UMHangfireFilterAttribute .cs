@@ -6,37 +6,30 @@ using ONEbook.UM.Services;
 namespace Aff12B.CronJobs.Host.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Interface)]
-    public class UMHangfireFilterAttribute : JobFilterAttribute, IClientFilter, IServerFilter
+    public class UMHangfireFilterAttribute(IMaintenanceService maintenanceService) : JobFilterAttribute, IClientFilter, IServerFilter
     {
-        public IMaintenanceService MaintenanceService { get; }
-
-        public UMHangfireFilterAttribute(IMaintenanceService maintenanceService)
+        public void OnCreating(CreatingContext context)
         {
-            MaintenanceService = maintenanceService;
-        }
-
-        public void OnCreating(CreatingContext filterContext)
-        {
-            if (MaintenanceService.IsUnderMaintenance())
+            if (maintenanceService.IsUnderMaintenance())
             {
-                filterContext.Canceled = true;
+                context.Canceled = true;
             }
         }
 
-        public void OnCreated(CreatedContext filterContext)
+        public void OnCreated(CreatedContext context)
         {
             //Nothing to do
         }
 
-        public void OnPerforming(PerformingContext filterContext)
+        public void OnPerforming(PerformingContext context)
         {
-            if (MaintenanceService.IsUnderMaintenance())
+            if (maintenanceService.IsUnderMaintenance())
             {
-                filterContext.Canceled = true;
+                context.Canceled = true;
             }
         }
 
-        public void OnPerformed(PerformedContext filterContext)
+        public void OnPerformed(PerformedContext context)
         {
             //Nothing to do
         }

@@ -26,6 +26,6 @@
 
 
         public static DateTime GetApiServerDateTime()
-            => DateTime.UtcNow;
+            => DateTimeOffset.UtcNow.DateTime;
     }
 }

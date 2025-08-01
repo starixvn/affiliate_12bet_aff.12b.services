@@ -3,6 +3,7 @@ using Aff12B.Common.DataDomain.Models;
 using Aff12B.Ext.API.Infastructure.Command;
 using Aff12B.Ext.API.Infastructure.Criteria;
 using Aff12B.Ext.API.Infastructure.Params;
+using Aff12B.Common.DataDomain.Params;
 using Fanex.Data.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,7 @@ namespace Aff12B.Ext.API.Site.Controllers
     [Authorize]
     public class CustomerController : ControllerBase
     {
+        private const int _Marketing_Cust_ID = -1;
         private readonly IDynamicRepository _dynamicRepository;
         private readonly ILogger _logger;
 
@@ -103,10 +105,10 @@ namespace Aff12B.Ext.API.Site.Controllers
                     AffiliateId = affiliate.AffiliateId,
                     AffiliateCode = affiliate.AffiliateCode,
                     AffiliateName = affiliate.AffiliateName,
-                    CustId = affiliate.CustId,
+                    CustId = affiliate.CustId == 0 ? _Marketing_Cust_ID : affiliate.CustId,
                     ParentAffiliate = affiliate.ParentAffiliate ?? string.Empty,
                     SiteId = affiliate.SiteId,
-                    UserName = affiliate.UserName,
+                    UserName = affiliate.UserName ?? string.Empty,
                     FirstName = affiliate.FirstName ?? string.Empty,
                     LastName = affiliate.LastName ?? string.Empty,
                     ContactNumber = affiliate.ContactNumber ?? string.Empty,
@@ -125,13 +127,13 @@ namespace Aff12B.Ext.API.Site.Controllers
             }
         }
 
-        private string BuildJson(int[] userIds)
+        private static string BuildJson(int[] userIds)
             => $"[{string.Join(",", userIds)}]";
 
         private string GetIpAddress()
             => HttpContext.Connection.RemoteIpAddress.ToString();
 
-        private bool HasNonASCIIChars(string str)
+        private static bool HasNonASCIIChars(string str)
             => Encoding.UTF8.GetByteCount(str) != str.Length;
     }
 }
