@@ -8,7 +8,7 @@ namespace Aff12B.CronJobs.Infrastructure.Repository
 {
     public class ThirdPartyImportRepository : IThirdPartyImportRepository
     {
-        public readonly IDynamicRepository _dynamicRepository;
+        private readonly IDynamicRepository _dynamicRepository;
 
         public ThirdPartyImportRepository(IDynamicRepository dynamicRepository)
         {

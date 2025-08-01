@@ -14,11 +14,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
     public class FetchTpWager9WDataTask(IProduct9WApi licenseeApi,
          IThirdPartyImportRepository _thirdPartyRepo,
          ITrackerService timeTrackerService,
-         IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TpWager9WModel, CreateTimeTrackerInfo>(_thirdPartyRepo, configuration.Get(Constants.ServiceConfigName.PULL_TPWAGER_9W_SETTING), timeTrackerService)
+         IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TpWager9WModel, CreateTimeTrackerInfo>
+            (_thirdPartyRepo, configuration.Get(Constants.ServiceConfigName.PULL_TPWAGER_9W_SETTING), timeTrackerService)
     {
         protected override async Task<IEnumerable<TpWager9WModel>> GetDataAsync(CreateTimeTrackerInfo trackValue, int batchCount)
         {
-            var toDate = DateTime.Now;
+            var toDate = DateTimeOffset.Now.DateTime;
             return await licenseeApi.GetTpWagerAsync(new BatchCountParam
             {
                 CreateTime = trackValue.CreateTime,
@@ -30,7 +31,11 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
 
         protected override CreateTimeTrackerInfo GetInsertTrackingValue(IEnumerable<TpWager9WModel> data)
         {
-            var lastItem = data.LastOrDefault();
+            var lastItem = data.LastOrDefault() ?? throw new InvalidOperationException("TpWager9W cannot determine tracking value: data collection is empty.");
+            if (!lastItem.CreateTime.HasValue || !lastItem.UpdateTime.HasValue)
+            {
+                throw new InvalidOperationException("TpWager9W cannot determine tracking value: last item's CreateTime or UpdateTime is null.");
+            }
 
             return new CreateTimeTrackerInfo
             {

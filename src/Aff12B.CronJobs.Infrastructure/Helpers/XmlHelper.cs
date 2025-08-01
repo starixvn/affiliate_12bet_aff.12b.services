@@ -13,7 +13,7 @@ namespace Aff12B.CronJobs.Infrastructure.Helpers
             {
                 if (item == null)
                 {
-                    throw new ArgumentNullException($"Have null item in insert data");
+                    throw new ArgumentNullException(nameof(data), "Null item found in insert data");
                 }
                 var elem = new XElement(tagName);
                 InsertAttribute(elem, item);
@@ -26,10 +26,9 @@ namespace Aff12B.CronJobs.Infrastructure.Helpers
             where T : class
         {
             var type = typeof(T);
-            var props = type.GetProperties();
-            foreach (var prop in props)
+            var propNames = type.GetProperties().Select(prop => prop.Name);
+            foreach (var propName in propNames)
             {
-                var propName = prop.Name;
                 var value = type.GetProperty(propName).GetValue(item, null) ?? "";
                 elem.Add(new XAttribute(propName.ToLowerInvariant(), value));
             }

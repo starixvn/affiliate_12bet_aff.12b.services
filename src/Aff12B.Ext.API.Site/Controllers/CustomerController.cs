@@ -45,7 +45,7 @@ namespace Aff12B.Ext.API.Site.Controllers
             CustomerModel cust = null;
             if (!string.IsNullOrWhiteSpace(userName) && !HasNonASCIIChars(userName))
             {
-                cust = await _dynamicRepository.GetAsync<CustomerModel>(new GetLoginCustInfoCriteria() { UserName = userName, SiteId = siteId });
+                cust = await _dynamicRepository.GetAsync<CustomerModel>(new GetLoginCustInfoCriteria { UserName = userName, SiteId = siteId });
             }
             return cust;
         }

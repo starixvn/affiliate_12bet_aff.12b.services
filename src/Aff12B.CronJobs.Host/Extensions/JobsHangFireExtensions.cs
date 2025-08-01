@@ -60,14 +60,14 @@ namespace Aff12B.CronJobs.Host.Extensions
             });
         }
 
-        public static void UseRecuringJobs(this IApplicationBuilder app, IConfiguration configuration)
+        public static void UseRecuringJobs(this IApplicationBuilder _, IConfiguration configuration)
         {
             var isTest = configuration.GetSection("App:IsTest").Get<bool>();
             if (!isTest)
             {
                 var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
 
-                RegisterFetchDataTask(configuration, listJobDic);
+                RegisterFetchDataTask(listJobDic);
                 RegisterRetryDataTask(configuration, listJobDic);
                 RegisterUpdateMasterDataTask(listJobDic);
             }
@@ -107,7 +107,7 @@ namespace Aff12B.CronJobs.Host.Extensions
         public static IServiceCollection AddApi(this IServiceCollection services, AppSetting appSettings, IConfiguration configuration)
         {
             var proxySetting = configuration.GetSection("ProxySetting").Get<ProxySetting>();
-            Func<HttpClientHandler> defaultFuncHttpHandler = () => new HttpClientHandler()
+            Func<HttpClientHandler> defaultFuncHttpHandler = () => new HttpClientHandler
             {
                 Proxy = proxySetting != null && proxySetting.IsUseProxy
                               ? new WebProxy(new Uri(proxySetting.ProxyUrl))
@@ -249,10 +249,10 @@ namespace Aff12B.CronJobs.Host.Extensions
                     ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING,
                     listJobDic[ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING]
                 );
-            //services.AddScoped<ICacheUpdateTask, UpdateMasterDataCacheTask>();
+
         }
 
-        private static void RegisterFetchDataTask(IConfiguration configuration, Dictionary<string, FetchServiceSetting> listJobDic)
+        private static void RegisterFetchDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
         {
             RegisterTask<FetchRealAffCustomerDataTask>("Fetch Aff Customer Data -- Real", listJobDic[PULL_REAL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchAffCustomerDataTask>("Fetch Aff Customer Data -- Normal", listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());

@@ -10,6 +10,7 @@ using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.Log
 {
@@ -26,7 +27,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Log
             ILogger<FetchRebateMLogDataTask> logger,
             ITrackerService timeTrackerService,
             IOptionsSnapshot<FetchServiceSetting> configuration)
-            : base(_thirdPartyRepo, configuration.Get(Constants.ServiceConfigName.PULL_REBATEMLOG_SETTING))
+            : base(_thirdPartyRepo, configuration.Get(ServiceConfigName.PULL_REBATEMLOG_SETTING))
         {
             Api = licenseeApi;
             Logger = logger;
@@ -38,7 +39,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Log
         public override async Task FetchDataAsync()
         {
             var tracker = await TrackerService.GetTrackerAsync(TableName, t => t.CalledTime);
-            var fromDate = DateTime.Parse(tracker.KeyValue);
+            var fromDate = DateTime.Parse(tracker.KeyValue, CultureInfo.InvariantCulture);
             var toDate = GetAdjustmentTime();
             await FetchDataAndTrackTimeAsync(fromDate, toDate);
         }
@@ -52,7 +53,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Log
                 try
                 {
                     await FetchAndInsertDataAsync(range.FromDate, range.ToDate);
-                    var tracker = new TrackerInfo { CalledTime = DateTime.Now, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
+                    var tracker = new TrackerInfo { CalledTime = DateTimeOffset.Now.DateTime, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
                     await TrackerService.SaveTrackerAsync(TableName, tracker);
                 }
                 catch
@@ -79,7 +80,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Log
 
         private TimeSpan GetApiMaxTimeRange() => TimeSpan.FromMinutes(Settings.MaxTimeRange);
 
-        private DateTime GetAdjustmentApiServerDate(TimeSpan ajustmentTime)
+        private static DateTime GetAdjustmentApiServerDate(TimeSpan ajustmentTime)
         {
             var date = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(API_SERVER_TIME_OFFSET));
             var adjustDate = date.Add(ajustmentTime);

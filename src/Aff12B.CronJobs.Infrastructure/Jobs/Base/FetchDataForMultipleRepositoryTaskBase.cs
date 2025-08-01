@@ -78,7 +78,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
             {
                 await _thirdPartyImportRepository.ImportRecordAsync(record);
                 if (record.ErrCode != 0)
+                {
                     throw new ImporterException(record.ErrMsg);
+                }
             }
         }
     }

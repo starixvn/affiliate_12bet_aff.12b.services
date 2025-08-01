@@ -6,7 +6,6 @@ using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Hangfire;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
@@ -14,16 +13,13 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
     public class FetchGameTypeDataTask : FetchDataForMultipleRepositoryTaskBase<TpGameTypeModel>
     {
         private readonly ILicenseeApi _licenseeApi;
-        private readonly ILogger _logger;
 
         public FetchGameTypeDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
-            , ILogger<FetchGameTypeDataTask> logger
             , IOptionsSnapshot<FetchServiceSetting> setting)
             : base(thirdPartyImportRepository, setting.Get(ServiceConfigName.PULL_GAME_TYPE_SETTING))
         {
             _licenseeApi = licenseeApi ?? throw new ArgumentNullException(nameof(licenseeApi));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [DisableConcurrentExecution(60)]

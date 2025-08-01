@@ -44,14 +44,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Base
                         KeyValue = keyValue
                     });
 
-                if (importData.Count() == PagingSize)
-                {
-                    importData = await GetDataAsync(trackValue, PagingSize);
-                }
-                else
-                {
-                    break;
-                }
+                importData = importData.Count() == PagingSize
+                    ? await GetDataAsync(trackValue, PagingSize)
+                    : null;
             }
         }
 

@@ -12,7 +12,7 @@ namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 
         public override bool IsValid() => true;
 
-        public int ErrCode { get; set; } = 0;
+        public int ErrCode { get; set; }
 
         public string ErrMsg { get; set; } = string.Empty;
     }

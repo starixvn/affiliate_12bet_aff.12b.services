@@ -13,7 +13,7 @@ using System.Web;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 {
-    public abstract class BaseAffCustomerDataTask
+    public class BaseAffCustomerDataTask
     {
         protected const int BATCH_COUNT = 2000;
         protected virtual bool IsNeedRealData => false;
@@ -26,7 +26,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 
         protected IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
 
-        public BaseAffCustomerDataTask(ILicenseeApi licenseeApi
+        protected BaseAffCustomerDataTask(ILicenseeApi licenseeApi
             , IAffMemberRepository memberImportRepository
             , ILogger<BaseAffCustomerDataTask> logger
             , LicenseeSiteSetting licenseeSiteSetting
@@ -97,7 +97,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             }
 
             dates.Sort();
-            return dates.First();
+            return dates[0];
         }
 
         private async Task HandleFetchDataAsync(IEnumerable<(DateTime FromDate, DateTime ToDate)> dateRanges)
@@ -123,12 +123,15 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
         private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate)
         {
             int pageIndex = 0;
-            while (true)
+            bool hasMoreData = true;
+
+            while (hasMoreData)
             {
-                var data = await _licenseeApi.GetAffCustomerAsync(fromDate, toDate, pageIndex, BATCH_COUNT);
+                var data = await _licenseeApi.GetAffCustomerAsync(fromDate, toDate, pageIndex);
                 if (!data.Any())
                 {
-                    break;
+                    hasMoreData = false;
+                    continue;
                 }
 
                 var insertMemberCommands = GetImportingData(data);
@@ -147,7 +150,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
                 pageIndex++;
                 if (data.Count() < BATCH_COUNT)
                 {
-                    break;
+                    hasMoreData = false;
                 }
             }
         }
@@ -218,28 +221,41 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
         private static string BuildXml(List<AffCustomerModel> customers)
         {
             var customerXml = string.Join(
-                    string.Empty,
-                    customers.Select(customer =>
-                    {
-                        var builder = new StringBuilder();
-                        builder.AppendJoin(" ", "<row"
-                            , $"custid=\"{HttpUtility.HtmlEncode(customer?.CustId)}\""
-                            , $"username=\"{HttpUtility.HtmlEncode(customer?.UserName)}\""
-                            , $"currencyid=\"{HttpUtility.HtmlEncode(customer?.CurrencyId)}\""
-                            , $"actstatus=\"{HttpUtility.HtmlEncode(customer?.ActStatus)}\""
-                            , $"affid=\"{HttpUtility.HtmlEncode(customer?.AffId)}\""
-                            , $"regtime=\"{HttpUtility.HtmlEncode(customer?.RegTime)}\""
-                            , $"firstdepositdate=\"{customer?.FirstDepositDate}\""
-                            , $"status=\"{HttpUtility.HtmlEncode(customer?.Status)}\""
-                            , $"istest=\"{HttpUtility.HtmlEncode(customer?.IsTest)}\""
-                            , $"affcode=\"{HttpUtility.HtmlEncode(customer?.AffCode)}\""
-                            , $"affmedialinkid=\"{HttpUtility.HtmlEncode(customer?.AffMediaLinkId)}\""
-                            , $"clickid=\"{HttpUtility.HtmlEncode(customer?.ClickId)}\""
-                            , "/>");
-                        return builder.ToString();
-                    }));
+                string.Empty,
+                customers.Select(BuildCustomerRowXml)
+            );
 
             return $"<root>{customerXml}</root>";
+        }
+
+        private static string BuildCustomerRowXml(AffCustomerModel customer)
+        {
+            var safeCustomer = customer ?? new AffCustomerModel();
+            var builder = new StringBuilder();
+            builder.Append("<row");
+            AppendXmlAttribute(builder, "custid", safeCustomer.CustId);
+            AppendXmlAttribute(builder, "username", safeCustomer.UserName);
+            AppendXmlAttribute(builder, "currencyid", safeCustomer.CurrencyId);
+            AppendXmlAttribute(builder, "actstatus", safeCustomer.ActStatus);
+            AppendXmlAttribute(builder, "affid", safeCustomer.AffId);
+            AppendXmlAttribute(builder, "regtime", safeCustomer.RegTime);
+            AppendXmlAttribute(builder, "firstdepositdate", safeCustomer.FirstDepositDate);
+            AppendXmlAttribute(builder, "status", safeCustomer.Status);
+            AppendXmlAttribute(builder, "istest", safeCustomer.IsTest);
+            AppendXmlAttribute(builder, "affcode", safeCustomer.AffCode);
+            AppendXmlAttribute(builder, "affmedialinkid", safeCustomer.AffMediaLinkId);
+            AppendXmlAttribute(builder, "clickid", safeCustomer.ClickId);
+            builder.Append(" />");
+            return builder.ToString();
+        }
+
+        private static void AppendXmlAttribute(StringBuilder builder, string attributeName, object value)
+        {
+            builder.Append(' ')
+                   .Append(attributeName)
+                   .Append("=\"")
+                   .Append(HttpUtility.HtmlEncode(value))
+                   .Append("\"");
         }
 
         private DateTime GetAdjustmentTime(DateTime fromDate)

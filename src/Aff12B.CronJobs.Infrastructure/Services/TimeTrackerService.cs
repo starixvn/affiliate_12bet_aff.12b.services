@@ -32,7 +32,10 @@ namespace Aff12B.CronJobs.Infrastructure.Services
         {
             var listTracker = await GetListTrackerAsync(source);
             if (!listTracker.Any())
+            {
                 throw new InvalidOperationException("Can't fetch any track time");
+            }
+
             return listTracker.OrderBy(minKeySelector).FirstOrDefault();
         }
 
@@ -40,7 +43,10 @@ namespace Aff12B.CronJobs.Infrastructure.Services
         {
             var listTracker = await GetListTrackerAsync(source);
             if (!listTracker.Any())
+            {
                 throw new InvalidOperationException("Can't fetch any track time");
+            }
+
             return listTracker.OrderBy(minKeySelector, comparer).FirstOrDefault();
         }
 

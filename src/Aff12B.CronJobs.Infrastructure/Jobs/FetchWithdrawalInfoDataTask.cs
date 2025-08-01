@@ -13,7 +13,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         IThirdPartyImportRepository thirdPartyImportRepository,
         ITrackerService timeTrackerService,
         ILicenseeApi licenseeApi,
-        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<WithdrawalInfoModel, string>(thirdPartyImportRepository, configuration.Get(Constants.ServiceConfigName.PULL_WITHDRAWAL_INFO), timeTrackerService)
+        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<WithdrawalInfoModel, string>
+            (thirdPartyImportRepository, configuration.Get(Constants.ServiceConfigName.PULL_WITHDRAWAL_INFO), timeTrackerService)
     {
         protected override Task<IEnumerable<WithdrawalInfoModel>> GetDataAsync(string trackValue, int batchCount)
             => licenseeApi.GetWithdrawalInfo(Convert.ToDateTime(trackValue), batchCount);

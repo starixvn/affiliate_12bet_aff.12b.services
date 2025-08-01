@@ -35,7 +35,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Bonus
         public override async Task FetchDataAsync()
         {
             var date = GetLastMonthDate();
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
             while (date <= now)
             {
                 await PullAndImportData(date);
@@ -57,7 +57,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Bonus
                 await _trackerService.SaveTrackerAsync(TableName,
                     new TrackerInfo
                     {
-                        CalledTime = DateTime.Now,
+                        CalledTime = DateTimeOffset.Now.DateTime,
                         KeyValue = JsonConvert.SerializeObject(trackerItem)
                     });
                 pageIndex++;
@@ -65,7 +65,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Bonus
         }
 
         private DateTime GetLastMonthDate()
-            => DateTime.Now.AddDays(SUBSTRACT_DATE).Date;
+            => DateTimeOffset.Now.AddDays(SUBSTRACT_DATE).Date;
 
 
         protected override string BuildXml(IEnumerable<BonusModel> data)
