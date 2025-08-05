@@ -1,4 +1,5 @@
 using Aff12B.Common.DataDomain.Models;
+using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
 using Aff12B.CronJobs.Infrastructure.SpParams;
@@ -68,7 +69,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             }
         }
 
-        private async Task UpdateCacheForSiteAsync(string cacheKey, IList<MasterInfoValidation> masterData, string sitePrefixProvider)
+        private async Task UpdateCacheForSiteAsync(string cacheKey, MasterInfoValidation masterData, string sitePrefixProvider)
         {
             try
             {
@@ -89,15 +90,21 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             }
         }
 
-        private async Task<IList<MasterInfoValidation>> GetMasterDataAsync(string sitePrefixProvider)
+        private async Task<MasterInfoValidation> GetMasterDataAsync(string sitePrefixProvider)
         {
             try
             {
                 // Fetch master data from stored procedure using site prefix
                 var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
-                var masterInfoValidationData = await _dynamicRepository.FetchAsync<MasterInfoValidation>(criteria);
+                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateCommGroup>(criteria);
 
-                return masterInfoValidationData?.ToList();
+               return new MasterInfoValidation
+                {
+                    SpecialDomainMappings = results.FirstResultSet,
+                    DomainMappings = results.SecondResultSet,
+                    LanguageReferences = results.ThirdResultSet,
+                    AffCommGroups = results.FourthResultSet,
+                };
             }
             catch (Exception ex)
             {
