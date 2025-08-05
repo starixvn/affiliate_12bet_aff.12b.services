@@ -14,7 +14,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
     public class UpdateMasterDataCacheTask : ICacheUpdateTask
     {
         private const string MASTER_DATA_CACHE_KEY_TEMPLATE = "Aff.{0}.Go.MasterData";
-        private const int CacheDurationInSeconds = 86400;
+        private const int CacheSlidingExpirationInHours = 24;
 
         private readonly ICacheService _cacheService;
         private readonly IDynamicRepository _dynamicRepository;
@@ -75,7 +75,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             {
                 var cacheOptions = new CacheItemOptions
                 {
-                    AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(CacheDurationInSeconds)
+                    SlidingExpiration = TimeSpan.FromHours(CacheSlidingExpirationInHours)
                 };
                 await _cacheService.SetAsync(cacheKey, masterData, cacheOptions);
 
@@ -99,12 +99,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateCommGroup>(criteria);
 
                return new MasterInfoValidation
-                {
-                    SpecialDomainMappings = results.FirstResultSet,
-                    DomainMappings = results.SecondResultSet,
-                    LanguageReferences = results.ThirdResultSet,
-                    AffCommGroups = results.FourthResultSet,
-                };
+            {
+                SpecialDomainMappings = results.FirstResultSet,
+                DomainMappings = results.SecondResultSet,
+                LanguageReferences = results.ThirdResultSet,
+                AffCommGroups = results.FourthResultSet,
+            };
             }
             catch (Exception ex)
             {
