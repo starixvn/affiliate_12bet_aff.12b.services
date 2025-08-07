@@ -182,7 +182,6 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             try
             {
                 await _importerRepository.ImportMemberAsync(command);
-                _logger.LogInformation($"Prefix: {command.SettingPrefix} Site: {command.SiteName}, Imported Data from {fromDate} to {toDate} by SP {command.GetSettingKey()}: {command.XmlData}");
             }
             catch (Exception ex)
             {
