@@ -250,6 +250,12 @@ namespace Aff12B.CronJobs.Host.Extensions
                     listJobDic[ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING]
                 );
 
+            //FetchTagDataTask
+            services.AddScoped<FetchTagDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_TAG_SETTING,
+                    listJobDic[ServiceConfigName.PULL_TAG_SETTING]
+                );
         }
 
         private static void RegisterFetchDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
@@ -287,6 +293,8 @@ namespace Aff12B.CronJobs.Host.Extensions
             RegisterTask<FetchTpReport9WDataTask>($"{typeof(FetchTpReport9WDataTask).Name}", listJobDic[PULL_TPREPORT_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
 
             RegisterTask<FetchTpWager9WDataTask>($"{typeof(FetchTpWager9WDataTask).Name}", listJobDic[PULL_TPWAGER_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
+
+            RegisterTask<FetchTagDataTask>($"{typeof(FetchTagDataTask).Name}", listJobDic[PULL_TAG_SETTING].PullInfoCron, job => job.FetchDataAsync());
         }
 
         private static void RegisterRetryDataTask(IConfiguration configuration, Dictionary<string, FetchServiceSetting> listJobDic)

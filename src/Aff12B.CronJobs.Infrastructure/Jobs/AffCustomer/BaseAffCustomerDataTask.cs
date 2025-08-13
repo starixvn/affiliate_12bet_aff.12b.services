@@ -237,14 +237,14 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             AppendXmlAttribute(builder, "username", safeCustomer.UserName);
             AppendXmlAttribute(builder, "currencyid", safeCustomer.CurrencyId);
             AppendXmlAttribute(builder, "actstatus", safeCustomer.ActStatus);
-            AppendXmlAttribute(builder, "affid", safeCustomer.AffId);
             AppendXmlAttribute(builder, "regtime", safeCustomer.RegTime);
             AppendXmlAttribute(builder, "firstdepositdate", safeCustomer.FirstDepositDate);
             AppendXmlAttribute(builder, "status", safeCustomer.Status);
+            AppendXmlAttribute(builder, "affid", safeCustomer.AffId);
             AppendXmlAttribute(builder, "istest", safeCustomer.IsTest);
             AppendXmlAttribute(builder, "affcode", safeCustomer.AffCode);
-            AppendXmlAttribute(builder, "affmedialinkid", safeCustomer.AffMediaLinkId);
             AppendXmlAttribute(builder, "clickid", safeCustomer.ClickId);
+            AppendXmlAttribute(builder, "taglist", safeCustomer.TagList);
             builder.Append(" />");
             return builder.ToString();
         }

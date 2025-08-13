@@ -27,5 +27,9 @@
         public int? Status { get; set; }
 
         public int MemberType { get; set; }
+
+        public string TagList { get; set; }
+
+        public DateTime? LastTagUpdateTime { get; set; }
     }
 }

@@ -1,9 +1,6 @@
-﻿using Fanex.Data;
-using Fanex.Data.Repository;
-
-namespace Aff12B.Ext.API.Infastructure.Criteria
+﻿namespace Aff12B.Ext.API.Infastructure.Criteria
 {
-    public class GetAffCustomersCriteria : CriteriaBase
+    public class GetAffCustomersCriteria : PagingCriteria
     {
         private const string SP_NAME = "Aff_CustomerSel";
 
@@ -18,17 +15,5 @@ namespace Aff12B.Ext.API.Infastructure.Criteria
         public override string GetSettingKey() => SP_NAME;
 
         public override bool IsValid() => true;
-
-        [SpParam(SqlParamName = "_FromDate")]
-        public DateTime FromDate { get; }
-
-        [SpParam(SqlParamName = "_ToDate")]
-        public DateTime ToDate { get; set; }
-
-        [SpParam(SqlParamName = "_PageIndex")]
-        public int PageIndex { get; set; }
-
-        [SpParam(SqlParamName = "_PageSize")]
-        public int PageSize { get; }
     }
 }

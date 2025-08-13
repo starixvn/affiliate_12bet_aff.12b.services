@@ -1,4 +1,3 @@
-using Aff12B.Common.DataDomain.Models;
 using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
@@ -98,14 +97,14 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
                 var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateDeal, LandingPageSetting>(criteria);
 
-               return new MasterInfoValidation
-            {
-                SpecialDomainMappings = results.FirstResultSet,
-                DomainMappings = results.SecondResultSet,
-                LanguageReferences = results.ThirdResultSet,
-                AffCommGroups = results.FourthResultSet,
-                LandingPages = results.FifthResultSet
-            };
+                return new MasterInfoValidation
+                {
+                    SpecialDomainMappings = results.FirstResultSet,
+                    DomainMappings = results.SecondResultSet,
+                    LanguageReferences = results.ThirdResultSet,
+                    AffCommGroups = results.FourthResultSet,
+                    LandingPages = results.FifthResultSet
+                };
             }
             catch (Exception ex)
             {
