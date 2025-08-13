@@ -96,7 +96,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             {
                 // Fetch master data from stored procedure using site prefix
                 var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
-                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateCommGroup>(criteria);
+                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateDeal, LandingPageSetting>(criteria);
 
                return new MasterInfoValidation
             {
@@ -104,6 +104,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 DomainMappings = results.SecondResultSet,
                 LanguageReferences = results.ThirdResultSet,
                 AffCommGroups = results.FourthResultSet,
+                LandingPages = results.FifthResultSet
             };
             }
             catch (Exception ex)
