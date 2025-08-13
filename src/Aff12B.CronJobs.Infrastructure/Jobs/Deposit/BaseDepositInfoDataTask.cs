@@ -6,29 +6,25 @@ using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
 {
-    public abstract class BaseDepositInfoDataTask : FetchDataForMultipleRepositoryTaskBase<DepositInfoModel>
+    public class BaseDepositInfoDataTask : FetchDataForMultipleRepositoryTaskBase<DepositInfoModel>
     {
         private readonly ILicenseeApi _licenseeApi;
-        private readonly ILogger _logger;
         private readonly ITrackerService _trackerService;
 
         private const int MAX_ROW_COUNT = 2000;
         protected virtual bool IsNeedRealData => false;
 
-        public BaseDepositInfoDataTask(IThirdPartyImportRepository thirdPartyImportRepository
+        protected BaseDepositInfoDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
-            , ILogger<BaseDepositInfoDataTask> logger
             , ITrackerService trackerService
             , FetchServiceSetting fetchServiceSetting)
             : base(thirdPartyImportRepository, fetchServiceSetting)
         {
             _licenseeApi = licenseeApi;
-            _logger = logger;
             _trackerService = trackerService;
         }
 
@@ -73,12 +69,15 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
         private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate, bool isNeedImportTracker = true)
         {
             int pageIndex = 0;
-            while (true)
+            bool hasMoreData = true;
+
+            while (hasMoreData)
             {
-                var data = await _licenseeApi.GetDepositInfo(fromDate, toDate, pageIndex, MAX_ROW_COUNT);
+                var data = await _licenseeApi.GetDepositInfo(fromDate, toDate, pageIndex);
                 if (!data.Any())
                 {
-                    break;
+                    hasMoreData = false;
+                    continue;
                 }
                 await ImportDataToMultipleRepoAsync(data);
                 pageIndex++;
@@ -93,14 +92,14 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Deposit
                     await _trackerService.SaveTrackerAsync(TableName,
                         new TrackerInfo
                         {
-                            CalledTime = DateTime.Now,
+                            CalledTime = DateTimeOffset.Now.DateTime,
                             KeyValue = JsonConvert.SerializeObject(trackerItem)
                         });
                 }
 
                 if (data.Count() < MAX_ROW_COUNT)
                 {
-                    break;
+                    hasMoreData = false;
                 }
             }
         }

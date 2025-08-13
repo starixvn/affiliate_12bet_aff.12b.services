@@ -8,9 +8,9 @@ using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
 {
@@ -62,11 +62,11 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
         public async Task FetchLastMonthAsync()
         {
-            var now = DateTime.Now;
+            var now = DateTimeOffset.Now;
             var dayLastMonth = now.AddMonths(-1);
-            var firstDayLastMonth = new DateTime(dayLastMonth.Year, dayLastMonth.Month, 1);
-            var firstDayThisMonth = new DateTime(now.Year, now.Month, 1);
-            await FetchDataAsync(firstDayLastMonth, firstDayThisMonth);
+            var firstDayLastMonth = new DateTimeOffset(dayLastMonth.Year, dayLastMonth.Month, 1, 0, 0, 0, now.Offset);
+            var firstDayThisMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset);
+            await FetchDataAsync(firstDayLastMonth.DateTime, firstDayThisMonth.DateTime);
         }
 
         public async Task FetchFromAdjusmentDayAsync(int day)
@@ -82,9 +82,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         {
             var lastFetchDate = await GetLastTimeFetchDateAsync();
             var adjustDate = lastFetchDate.AddHours(-adjustHour);
-            var fromDate = new DateTime(adjustDate.Year, adjustDate.Month, adjustDate.Day);
+            var fromDate = new DateTimeOffset(adjustDate.Year, adjustDate.Month, adjustDate.Day, 0, 0, 0, DateTimeOffset.Now.Offset);
             var toDate = GetAdjustmentApiServerDate();
-            await FetchDataAsync(fromDate, toDate);
+            await FetchDataAsync(fromDate.DateTime, toDate);
         }
 
         private async Task FetchDataAndTrackTimeAsync(DateTime fromDate, DateTime toDate)
@@ -96,7 +96,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
                 try
                 {
                     await FetchAndInsertDataByPageAsync(range.FromDate, range.ToDate);
-                    var tracker = new TrackerInfo { CalledTime = DateTime.Now, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
+                    var tracker = new TrackerInfo { CalledTime = DateTimeOffset.Now.DateTime, KeyValue = range.ToDate.ToString(Format.DateTimeFormat, CultureInfo.InvariantCulture) };
                     await _timeTrackerService.SaveTrackerAsync(TableName, tracker);
                 }
                 catch (Exception ex)
@@ -137,13 +137,13 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         {
             var adjustmentMin = Settings.AdjustmentValue;
             var tracker = await _timeTrackerService.GetTrackerAsync(TableName, t => t.CalledTime);
-            var trackingDate = DateTime.ParseExact(tracker.KeyValue, Format.DateTimeFormat, null);
+            var trackingDate = DateTime.ParseExact(tracker.KeyValue, Format.DateTimeFormat, CultureInfo.InvariantCulture);
             var lastFetchDate = trackingDate.AddMinutes(adjustmentMin);
 
             return lastFetchDate;
         }
 
-        private DateTime GetAdjustmentApiServerDate()
+        private static DateTime GetAdjustmentApiServerDate()
         {
             var date = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(API_SERVER_TIME_OFFSET));
             return date.DateTime;

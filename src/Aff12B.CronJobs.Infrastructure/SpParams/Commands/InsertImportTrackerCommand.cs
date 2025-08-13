@@ -16,7 +16,7 @@ namespace Aff12B.CronJobs.Infrastructure.SpParams.Commands
 
         public string KeyValue { get; set; } = string.Empty;
 
-        public int ErrCode { get; set; } = 0;
+        public int ErrCode { get; set; }
 
         public string ErrMsg { get; set; } = string.Empty;
     }

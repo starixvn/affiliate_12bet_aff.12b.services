@@ -17,9 +17,13 @@ using Aff12B.CronJobs.Infrastructure.Jobs.Product9W;
 using Aff12B.CronJobs.Infrastructure.Jobs.RetryJob;
 using Aff12B.CronJobs.Infrastructure.Repository;
 using Aff12B.CronJobs.Infrastructure.Services;
+using Fanex.Caching;
+using Fanex.Caching.Redis;
 using Fanex.Data.Repository;
 using Hangfire;
+using ONEbook.UM.DependencyInjection;
 using Refit;
+
 using System.Linq.Expressions;
 using System.Net;
 using static Aff12B.CronJobs.Infrastructure.Constants.ServiceConfigName;
@@ -38,7 +42,7 @@ namespace Aff12B.CronJobs.Host.Extensions
             services.Configure<TimeTrackerSetting>(configuration.GetSection($"{AppSettingRoot}:TrackerSetting"));
 
             services.AddRepository()
-                .AddService()
+                .AddService(configuration)
                 .AddFilter()
                 .AddApi(appSetting, configuration)
                 .AddRecurringTasks(configuration);
@@ -56,13 +60,16 @@ namespace Aff12B.CronJobs.Host.Extensions
             });
         }
 
-        public static void UseRecuringJobs(this IApplicationBuilder app, IConfiguration configuration)
+        public static void UseRecuringJobs(this IApplicationBuilder _, IConfiguration configuration)
         {
             var isTest = configuration.GetSection("App:IsTest").Get<bool>();
             if (!isTest)
             {
-                RegisterFetchDataTask(configuration);
-                RegisterRetryDataTask(configuration);
+                var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
+
+                RegisterFetchDataTask(listJobDic);
+                RegisterRetryDataTask(configuration, listJobDic);
+                RegisterUpdateMasterDataTask(listJobDic);
             }
         }
 
@@ -77,10 +84,16 @@ namespace Aff12B.CronJobs.Host.Extensions
             return services;
         }
 
-        private static IServiceCollection AddService(this IServiceCollection services)
+        private static IServiceCollection AddService(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IDataTrackerService, DataTrackerService>();
             services.AddScoped<ITrackerService, TimeTrackerService>();
+
+            // Add Fanex Service
+            services.AddSingleton<ICacheService, CacheService>();
+            services.AddRedisCache(configuration.GetSection("fanex.caching.redis"));
+            services.AddOneBookUmForService(configuration);
+
             return services;
         }
 
@@ -94,7 +107,7 @@ namespace Aff12B.CronJobs.Host.Extensions
         public static IServiceCollection AddApi(this IServiceCollection services, AppSetting appSettings, IConfiguration configuration)
         {
             var proxySetting = configuration.GetSection("ProxySetting").Get<ProxySetting>();
-            Func<HttpClientHandler> defaultFuncHttpHandler = () => new HttpClientHandler()
+            Func<HttpClientHandler> defaultFuncHttpHandler = () => new HttpClientHandler
             {
                 Proxy = proxySetting != null && proxySetting.IsUseProxy
                               ? new WebProxy(new Uri(proxySetting.ProxyUrl))
@@ -106,7 +119,7 @@ namespace Aff12B.CronJobs.Host.Extensions
             var setting = new RefitSettings();
 
             services.AddTransient<AuthHeaderHandler>();
-            services.AddMemoryCache();
+            Microsoft.Extensions.DependencyInjection.MemoryCacheServiceCollectionExtensions.AddMemoryCache(services);
 
             services.AddRefitClient<ITokenApi>(setting)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(appSettings.LicenseeDataAPI))
@@ -229,19 +242,25 @@ namespace Aff12B.CronJobs.Host.Extensions
                     ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING,
                     listJobDic[ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING]
                 );
+
+            //UpdateMasterDataCacheTask
+            services.AddScoped<UpdateMasterDataCacheTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING,
+                    listJobDic[ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING]
+                );
+
         }
 
-        private static void RegisterFetchDataTask(IConfiguration configuration)
+        private static void RegisterFetchDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
         {
-            var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
-
             RegisterTask<FetchRealAffCustomerDataTask>("Fetch Aff Customer Data -- Real", listJobDic[PULL_REAL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchAffCustomerDataTask>("Fetch Aff Customer Data -- Normal", listJobDic[PULL_AFF_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
             RegisterTask<FetchAffCustomerDataTask>("Fetch Aff Customer Data -- DATE_RANGE", Cron.Never(), job => job.FetchDataByDateRangeTask());
 
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}", listJobDic[PULL_BET_RECORD_SETTING].PullInfoCron, job => job.FetchDataAsync());
-            RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "30 0/2 ? * *", job => job.FetchAllDay(2));
-            RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Daily", Cron.Daily(7), job => job.FetchFromAdjusmentDayAsync(3));
+            RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-2HourInterval", "20 0/2 ? * *", job => job.FetchAllDay(2));
+            RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Daily", Cron.Daily(7, 5), job => job.FetchFromAdjusmentDayAsync(3));
             RegisterTask<FetchBetRecordDataTask>($"{typeof(FetchBetRecordDataTask).Name}-Monthly", Cron.Monthly(4, 12, 0), job => job.FetchLastMonthAsync());
 
             RegisterTask<FetchRealCustomerDataTask>("Fetch Customer Data -- Real", listJobDic[PULL_REAL_CUSTOMER_SETTING].PullInfoCron, job => job.FetchDataAsync());
@@ -270,17 +289,21 @@ namespace Aff12B.CronJobs.Host.Extensions
             RegisterTask<FetchTpWager9WDataTask>($"{typeof(FetchTpWager9WDataTask).Name}", listJobDic[PULL_TPWAGER_9W_SETTING].PullInfoCron, job => job.FetchDataAsync());
         }
 
-        private static void RegisterRetryDataTask(IConfiguration configuration)
+        private static void RegisterRetryDataTask(IConfiguration configuration, Dictionary<string, FetchServiceSetting> listJobDic)
         {
             var appSetting = configuration.GetSection("App").Get<AppSetting>();
 
-            if(appSetting.IsApiDataModifiable)
+            if (appSetting.IsApiDataModifiable)
             {
-                var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _.Get<FetchServiceSetting>());
-
                 RegisterTask<ReInsertAffiliateInfoDataTask>($"{typeof(ReInsertAffiliateInfoDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
                 RegisterTask<InitialInsertAffInfoDataTask>(typeof(InitialInsertAffInfoDataTask).Name, listJobDic[INITIAL_INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
             }
+        }
+
+        private static void RegisterUpdateMasterDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
+        {
+            // Register the cache update task - runs every 10 minutes
+            RegisterTask<UpdateMasterDataCacheTask>($"{typeof(UpdateMasterDataCacheTask).Name}", listJobDic[UPDATE_MASTER_DATA_CACHE_SETTING].PullInfoCron, job => job.UpdateMasterDataCacheAsync());
         }
 
         private static void RegisterTask<T>(string serviceId, string cronExpression, Expression<Func<T, Task>> methodCall)

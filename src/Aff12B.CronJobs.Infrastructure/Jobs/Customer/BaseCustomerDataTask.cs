@@ -7,10 +7,11 @@ using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
+using System.Globalization;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
 {
-    public abstract class BaseCustomerDataTask : FetchDataForMultipleRepositoryTaskBase<CustomerModel>
+    public class BaseCustomerDataTask : FetchDataForMultipleRepositoryTaskBase<CustomerModel>
     {
         protected const int BATCH_COUNT = 2000;
         protected virtual bool IsNeedRealData => false;
@@ -18,7 +19,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
         private readonly ITrackerService _timeTrackerService;
         protected readonly ILicenseeApi _liceseeApi;
 
-        public BaseCustomerDataTask(IThirdPartyImportRepository thirdPartyImportRepository
+        protected BaseCustomerDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
             , ITrackerService timeTrackerService
             , FetchServiceSetting fetchServiceSetting)
@@ -38,7 +39,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
         protected async Task FetchDataAsync(TimeSpan maxTimeRange)
         {
             var tracker = await _timeTrackerService.GetTrackerAsync(TableName, t => t.CalledTime);
-            var fromDate = GetAdjustmentTime(DateTime.ParseExact(tracker.KeyValue, Format.DateTimeFormat, null));
+            var fromDate = GetAdjustmentTime(DateTime.ParseExact(tracker.KeyValue, Format.DateTimeFormat, CultureInfo.InvariantCulture));
 
             var apiServerNow = DateTimeHelper.GetApiServerDateTime();
             var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, maxTimeRange);
@@ -57,7 +58,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
             {
                 await HandleImportDataAsync(range.FromDate, range.ToDate);
 
-                var tracker = new TrackerInfo { CalledTime = DateTime.Now, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
+                var tracker = new TrackerInfo { CalledTime = DateTimeOffset.Now.DateTime, KeyValue = range.ToDate.ToString(Format.DateTimeFormat) };
                 await _timeTrackerService.SaveTrackerAsync(TableName, tracker);
             }
         }
@@ -75,18 +76,21 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
         private async Task HandleImportDataAsync(DateTime fromDate, DateTime toDate)
         {
             int pageIndex = 0;
-            while (true)
+            bool hasMoreData = true;
+
+            while (hasMoreData)
             {
-                var data = await _liceseeApi.GetCustomersAsync(fromDate, toDate, pageIndex, BATCH_COUNT);
+                var data = await _liceseeApi.GetCustomersAsync(fromDate, toDate, pageIndex);
                 if (!data.Any())
                 {
-                    break;
+                    hasMoreData = false;
+                    continue;
                 }
                 await ImportDataToMultipleRepoAsync(data);
                 pageIndex++;
                 if (data.Count() < BATCH_COUNT)
                 {
-                    break;
+                    hasMoreData = false;
                 }
             }
         }

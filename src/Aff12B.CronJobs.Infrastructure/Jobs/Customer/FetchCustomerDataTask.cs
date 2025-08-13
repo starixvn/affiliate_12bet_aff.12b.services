@@ -44,24 +44,21 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Customer
             var maxTimeRange = GetApiMaxTimeRange();
             var apiServerNow = DateTimeHelper.GetApiServerDateTime();
             var adjustmentDay = apiServerNow.AddDays(-1);
-            var fromDate = new DateTime(adjustmentDay.Year, adjustmentDay.Month, adjustmentDay.Day, 0, 0, 0);
-            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate, apiServerNow, maxTimeRange);
+            var fromDate = new DateTimeOffset(adjustmentDay.Year, adjustmentDay.Month, adjustmentDay.Day, 0, 0, 0, TimeSpan.Zero);
+            var dateRanges = DateTimeHelper.GetProportionTimeRange(fromDate.DateTime, apiServerNow, maxTimeRange);
 
             foreach (var range in dateRanges)
             {
                 var pageIndex = 0;
-                while (true)
+                var hasMoreData = true;
+                while (hasMoreData)
                 {
-                    var data = await _liceseeApi.GetCustomersAsync(range.FromDate, range.ToDate, pageIndex, BATCH_COUNT);
+                    var data = await _liceseeApi.GetCustomersAsync(range.FromDate, range.ToDate, pageIndex);
                     await ImportDataToMultipleRepoAsync(data);
                     pageIndex++;
-                    if (data.Count() < BATCH_COUNT)
-                    {
-                        break;
-                    }
+                    hasMoreData = data.Count() >= BATCH_COUNT;
                 }
             }
-
         }
     }
 }

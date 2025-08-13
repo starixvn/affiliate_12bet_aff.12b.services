@@ -1,6 +1,6 @@
+using Aff12B.Common.Infrastructure.Middleware;
 using Aff12B.Ext.API.Infastructure.ConfigurationModel;
 using Aff12B.Ext.API.Infastructure.Extentions;
-using Aff12B.Ext.API.Site.Middleware;
 using Fanex.Data.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -81,8 +81,6 @@ namespace Aff12B.Ext.API.Site
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "Aff12B.Ext.API.Site v2"));
             }
 
-            //app.UseHttpsRedirection();
-
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -90,10 +88,12 @@ namespace Aff12B.Ext.API.Site
 
             app.UseSerilogRequestLogging(options =>
             {
-                options.GetLevel = (ctx, elapsed, ex) =>
+                options.GetLevel = (ctx, _, ex) =>
                 {
                     if (ex != null || ctx.Response.StatusCode > 499)
+                    {
                         return LogEventLevel.Error;
+                    }
                     return LogEventLevel.Information;
                 };
             });

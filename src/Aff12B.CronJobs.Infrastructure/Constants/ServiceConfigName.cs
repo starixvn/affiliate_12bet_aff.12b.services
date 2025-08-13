@@ -35,5 +35,7 @@
         public const string INSERT_AFFILIATE_SETTING = "InsertAffiliateSetting";
 
         public const string INITIAL_INSERT_AFFILIATE_SETTING = "InitialInsertAffiliateSetting";
+
+        public const string UPDATE_MASTER_DATA_CACHE_SETTING = "UpdateMasterDataCacheSetting";
     }
 }

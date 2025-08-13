@@ -15,11 +15,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
     public class FetchTpReport9WDataTask(IProduct9WApi licenseeApi,
          IThirdPartyImportRepository thirdPartyRepo,
          ITrackerService timeTrackerService,
-         IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TpReport9WModel, SQTrackerInfo>(thirdPartyRepo, configuration.Get(ServiceConfigName.PULL_TPREPORT_9W_SETTING), timeTrackerService)
+         IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TpReport9WModel, SQTrackerInfo>
+            (thirdPartyRepo, configuration.Get(ServiceConfigName.PULL_TPREPORT_9W_SETTING), timeTrackerService)
     {
         protected override async Task<IEnumerable<TpReport9WModel>> GetDataAsync(SQTrackerInfo trackValue, int batchCount)
         {
-            var toDate = DateTime.Now;
+            var toDate = DateTimeOffset.Now.DateTime;
 
             return await licenseeApi.GetTpReportAsync(new BatchCountParam
             {
@@ -32,7 +33,11 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.Product9W
 
         protected override SQTrackerInfo GetInsertTrackingValue(IEnumerable<TpReport9WModel> data)
         {
-            var lastItem = data.LastOrDefault();
+            var lastItem = data.LastOrDefault() ?? throw new InvalidOperationException("TpReport9W cannot determine tracking value: data collection is empty.");
+            if (!lastItem.UpdateTime.HasValue)
+            {
+                throw new InvalidOperationException("TpReport9W cannot determine tracking value: last item's UpdateTime is null.");
+            }
 
             return new SQTrackerInfo
             {

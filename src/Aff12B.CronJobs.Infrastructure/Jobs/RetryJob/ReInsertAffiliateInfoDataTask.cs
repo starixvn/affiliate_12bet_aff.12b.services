@@ -1,9 +1,9 @@
-﻿using Aff12B.CronJobs.Core.Services;
+﻿using Aff12B.Common.DataDomain.Params;
+using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Aff12B.Common.DataDomain.Params;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,7 +17,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
         private readonly ILicenseeApi _liceseeApi;
         private readonly ILogger _logger;
 
-        private static readonly IEnumerable<int> ListPullStatusId = new int[] { DataTrackerStatus.InProcess, DataTrackerStatus.Failure };
+        private static readonly IEnumerable<int> ListPullStatusId = new[] { DataTrackerStatus.InProcess, DataTrackerStatus.Failure };
 
         private FetchServiceSetting Setting { get; }
 
@@ -40,7 +40,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             var prefixProviders = Setting.SupportedPrefix;
             var dataTrackerItems = await _trackerService.FetchTrackerAsync(
                 prefixProviders,
-                new int[] { DataTrackerType.InsertAffiliate },
+                new[] { DataTrackerType.InsertAffiliate },
                 ListPullStatusId
             );
 

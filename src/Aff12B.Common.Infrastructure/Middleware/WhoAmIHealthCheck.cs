@@ -1,17 +1,19 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Aff12B.CronJobs.Host.Middleware
+namespace Aff12B.Common.Infrastructure.Middleware
 {
     public class WhoAmIHealthCheck : IHealthCheck
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWebHostEnvironment _env;
+        private readonly IHostEnvironment _env;
 
-        public WhoAmIHealthCheck(IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
+        public WhoAmIHealthCheck(IHttpContextAccessor httpContextAccessor, IHostEnvironment env)
         {
             _httpContextAccessor = httpContextAccessor;
             _env = env;
@@ -50,7 +52,7 @@ namespace Aff12B.CronJobs.Host.Middleware
             result.Add("Local Ip", context.Connection.LocalIpAddress.ToString());
             result.Add("Local Port", context.Connection.LocalPort);
             result.Add("Client Ip", context.Connection.RemoteIpAddress.ToString());
-            result.Add("Server Time", DateTime.Now.ToString(CultureInfo.InvariantCulture));
+            result.Add("Server Time", DateTimeOffset.UtcNow.ToString(CultureInfo.InvariantCulture));
             result.Add("Last Updated", File.GetCreationTime(typeof(WhoAmIHealthCheck).Assembly.Location).ToString(CultureInfo.InvariantCulture));
             result.Add("Host", context.Request.Host);
             result.Add("Schema", context.Request.Scheme);

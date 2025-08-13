@@ -1,4 +1,5 @@
-﻿using Aff12B.CronJobs.Core.Domain.DTOs;
+﻿using Aff12B.Common.DataDomain.Params;
+using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
@@ -7,7 +8,6 @@ using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
 using Aff12B.CronJobs.Infrastructure.SpParams;
 using Aff12B.CronJobs.Infrastructure.SpParams.Commands;
-using Aff12B.Common.DataDomain.Params;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,7 +19,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
     {
         private const int PAGE_INDEX_DEFAULT = 1;
         private const int PAGE_SIZE_DEFAULT = 100;
-        private readonly IDictionary<string, int> SITE_IDs = new Dictionary<string, int>
+        private readonly Dictionary<string, int> SITE_IDs = new Dictionary<string, int>
         {
             { "12B", 101 }
         };
@@ -29,7 +29,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
         private readonly ILicenseeApi _liceseeApi;
         private readonly ILogger _logger;
 
-        private FetchServiceSetting _fetchServiceSetting { get; }
+        private FetchServiceSetting FetchServiceSetting { get; }
         private readonly LicenseeSiteSetting _licenseeSiteSetting;
 
         private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
@@ -47,7 +47,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             _affInfoRepository = affInfoRepository;
             _liceseeApi = licenseeApi;
             _logger = logger;
-            _fetchServiceSetting = configuration.Get(ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING);
+            FetchServiceSetting = configuration.Get(ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING);
             _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
         }
 
@@ -61,7 +61,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 return;
             }
 
-            _logger.LogWarning($"Start importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Start importing Affiliate Info to 12B - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
 
             foreach (var site in SupportedSites)
             {
@@ -71,16 +71,17 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 await ImportDataByBatchAsync(affInfos, sitePrefixProvider);
             }
 
-            _logger.LogWarning($"Complete importing Affiliate Info to 12B - {DateTime.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Complete importing Affiliate Info to 12B - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
         }
 
         private async Task ImportDataByBatchAsync(IEnumerable<AffInfo> data, string sitePrefixProvider)
         {
             var pageIndex = PAGE_INDEX_DEFAULT;
             var importData = data;
+
             while (importData != null && importData.Any())
             {
-                var prefixProviders = _fetchServiceSetting.SupportedPrefix;
+                var prefixProviders = FetchServiceSetting.SupportedPrefix;
 
                 foreach (var prefixProvider in prefixProviders)
                 {
@@ -94,7 +95,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 }
                 else
                 {
-                    break;
+                    importData = null;
                 }
             }
         }

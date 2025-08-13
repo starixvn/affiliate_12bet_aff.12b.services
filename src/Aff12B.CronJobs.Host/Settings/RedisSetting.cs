@@ -12,9 +12,6 @@
 
         public string AppName { get; set; }
 
-        public string KeepAlive { get; set; }
-
-        public string ProtectionDataKey { get; set; }
-
+        public int KeepAlive { get; set; }
     }
 }

@@ -2,6 +2,7 @@ FROM hub.nexdev.net/base/dotnet/core/sdk:8.0-alpine AS builder
 
 WORKDIR "/src"
 COPY ["/src/Aff12B.Common.DataDomain", "./Aff12B.Common.DataDomain"]
+COPY ["/src/Aff12B.Common.Infrastructure", "./Aff12B.Common.Infrastructure"]
 COPY ["/src/Aff12B.CronJobs.Core", "./Aff12B.CronJobs.Core"]
 COPY ["/src/Aff12B.CronJobs.Infrastructure", "./Aff12B.CronJobs.Infrastructure"]
 COPY ["/src/Aff12B.CronJobs.Host/Aff12B.CronJobs.Host.csproj", "./Aff12B.CronJobs.Host/Aff12B.CronJobs.Host.csproj"]

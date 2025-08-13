@@ -6,7 +6,6 @@ using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs.Base;
 using Hangfire;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
@@ -14,15 +13,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
     public class FetchServerInfoDataTask : FetchDataForMultipleRepositoryTaskBase<ServerInfoModel>
     {
         private readonly ILicenseeApi _licenseeApi;
-        private readonly ILogger _logger;
 
         public FetchServerInfoDataTask(IThirdPartyImportRepository thirdPartyImportRepository
             , ILicenseeApi licenseeApi
-            , ILogger<FetchServerInfoDataTask> logger
             , IOptionsSnapshot<FetchServiceSetting> setting)
             : base(thirdPartyImportRepository, setting.Get(ServiceConfigName.PULL_SERVER_INFO_SETTING))
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _licenseeApi = licenseeApi ?? throw new ArgumentNullException(nameof(licenseeApi));
         }
 
