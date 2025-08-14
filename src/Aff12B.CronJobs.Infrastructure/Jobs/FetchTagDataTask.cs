@@ -13,33 +13,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         IThirdPartyImportRepository thirdPartyImportRepository,
         ITrackerService timeTrackerService,
         ILicenseeApi licenseeApi,
-        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByBatchForMultiRepoTaskBase<TagModel, string>
+        IOptionsSnapshot<FetchServiceSetting> configuration) : FetchDataByDateTimeTrackerForMultiRepoTaskBase<TagModel>
             (thirdPartyImportRepository, configuration.Get(ServiceConfigName.PULL_TAG_SETTING), timeTrackerService)
     {
         protected override Task<IEnumerable<TagModel>> GetDataAsync(string trackValue, int batchCount)
             => licenseeApi.GetTagsAsync(Convert.ToDateTime(trackValue), batchCount);
 
-        protected override string GetInsertTrackingValue(IEnumerable<TagModel> data)
-        {
-            var trackValue = data.Max(d => d.UpdateTime);
 
-            if (trackValue.HasValue)
-            {
-                return trackValue.Value.ToString(Format.DateTimeFormat);
-            }
-            throw new ArgumentException($"Can not insert nullable DateTime Tracker Value of table {TableName}");
-        }
-
-        protected override async Task<string> GetLastTrackingValueAsync()
-        {
-            var tracker = await _timeTrackerService.GetTrackerAsync(TableName, t => t.CalledTime);
-            var date = string.IsNullOrWhiteSpace(tracker.KeyValue)
-                ? throw new ArgumentException($"Not valid DateTime Tracker Value {tracker.KeyValue} of table {TableName}")
-                : Convert.ToDateTime(tracker.KeyValue);
-            var adjustDateTime = GetAdjustmentTime(date);
-            return adjustDateTime.ToString(Format.DateTimeFormat);
-        }
-
-        private DateTime GetAdjustmentTime(DateTime date) => date.AddMinutes(Settings.AdjustmentValue);
     }
 }

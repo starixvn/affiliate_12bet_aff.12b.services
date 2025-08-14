@@ -141,121 +141,172 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             var listJobDic = configuration.GetSection(JobSettingRoot).GetChildren().ToDictionary(_ => _.Key, _ => _);
 
-            //FetchCustomerDataTask
+            AddCustomerTasks(services, listJobDic);
+            AddBetRecordTasks(services, listJobDic);
+            AddServerInfoTasks(services, listJobDic);
+            AddGameTypeTasks(services, listJobDic);
+            AddDepositInfoTasks(services, listJobDic);
+            AddBonusInfoTasks(services, listJobDic);
+            AddWithdrawalInfoTasks(services, listJobDic);
+            AddRebateMLogTasks(services, listJobDic);
+            AddTpReport9WTasks(services, listJobDic);
+            AddTpWager9WTasks(services, listJobDic);
+            AddAffiliateTasks(services, listJobDic);
+            AddMasterDataCacheTasks(services, listJobDic);
+            AddTagTasks(services, listJobDic);
+        }
+
+        private static void AddCustomerTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchAffCustomerDataTask
             services.AddScoped<FetchAffCustomerDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_AFF_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_AFF_CUSTOMER_SETTING]);
 
+            // FetchRealAffCustomerDataTask
             services.AddScoped<FetchRealAffCustomerDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_REAL_AFF_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_REAL_AFF_CUSTOMER_SETTING]);
 
-            //FetchBetRecordDataTask
-            services.AddScoped<FetchBetRecordDataTask>()
-                .Configure<FetchServiceSetting>(
-                ServiceConfigName.PULL_BET_RECORD_SETTING,
-                listJobDic[ServiceConfigName.PULL_BET_RECORD_SETTING]);
-
-            //FetchCustomerDataTask
+            // FetchCustomerDataTask
             services.AddScoped<FetchCustomerDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_CUSTOMER_SETTING]);
+
+            // FetchRealCustomerDataTask
             services.AddScoped<FetchRealCustomerDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_REAL_CUSTOMER_SETTING,
                     listJobDic[ServiceConfigName.PULL_REAL_CUSTOMER_SETTING]);
+        }
 
-            //FetchServerInfoDataTask
+        private static void AddBetRecordTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchBetRecordDataTask
+            services.AddScoped<FetchBetRecordDataTask>()
+                .Configure<FetchServiceSetting>(
+                    ServiceConfigName.PULL_BET_RECORD_SETTING,
+                    listJobDic[ServiceConfigName.PULL_BET_RECORD_SETTING]);
+        }
+
+        private static void AddServerInfoTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchServerInfoDataTask
             services.AddScoped<FetchServerInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_SERVER_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_SERVER_INFO_SETTING]);
+        }
 
-            //FetchTpGameTypeDataTask
+        private static void AddGameTypeTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchGameTypeDataTask
             services.AddScoped<FetchGameTypeDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_GAME_TYPE_SETTING,
                     listJobDic[ServiceConfigName.PULL_GAME_TYPE_SETTING]);
+        }
 
-            //FetchDepositInfoDataTask
+        private static void AddDepositInfoTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchDepositInfoDataTask
             services.AddScoped<FetchDepositInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_DEPOSIT_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_DEPOSIT_INFO_SETTING]);
 
+            // FetchRealDepositInfoDataTask
             services.AddScoped<FetchRealDepositInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_REAL_DEPOSIT_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_REAL_DEPOSIT_INFO_SETTING]);
+        }
 
-            //FetchBonusInfoDataTask
+        private static void AddBonusInfoTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchBonusInfoDataTask
             services.AddScoped<FetchBonusInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_BONUS_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_BONUS_INFO_SETTING]);
 
+            // FetchWeeklyBonusInfoDataTask
             services.AddScoped<FetchWeeklyBonusInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_WEEKLY_BONUS_INFO_SETTING,
                     listJobDic[ServiceConfigName.PULL_WEEKLY_BONUS_INFO_SETTING]);
+        }
 
-
-            //FetchWithdrawalInfoDataTask
+        private static void AddWithdrawalInfoTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchWithdrawalInfoDataTask
             services.AddScoped<FetchWithdrawalInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_WITHDRAWAL_INFO,
-                    listJobDic[ServiceConfigName.PULL_WITHDRAWAL_INFO]
-                );
+                    listJobDic[ServiceConfigName.PULL_WITHDRAWAL_INFO]);
+        }
 
-            //FetchRebateMLogDataTask
+        private static void AddRebateMLogTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchRebateMLogDataTask
             services.AddScoped<FetchRebateMLogDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_REBATEMLOG_SETTING,
-                    listJobDic[ServiceConfigName.PULL_REBATEMLOG_SETTING]
-                );
+                    listJobDic[ServiceConfigName.PULL_REBATEMLOG_SETTING]);
+        }
 
+        private static void AddTpReport9WTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchTpReport9WDataTask
             services.AddScoped<FetchTpReport9WDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_TPREPORT_9W_SETTING,
-                    listJobDic[ServiceConfigName.PULL_TPREPORT_9W_SETTING]
-                );
+                    listJobDic[ServiceConfigName.PULL_TPREPORT_9W_SETTING]);
+        }
 
+        private static void AddTpWager9WTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchTpWager9WDataTask
             services.AddScoped<FetchTpWager9WDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_TPWAGER_9W_SETTING,
-                    listJobDic[ServiceConfigName.PULL_TPWAGER_9W_SETTING]
-                );
+                    listJobDic[ServiceConfigName.PULL_TPWAGER_9W_SETTING]);
+        }
 
+        private static void AddAffiliateTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // ReInsertAffiliateInfoDataTask
             services.AddScoped<ReInsertAffiliateInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.INSERT_AFFILIATE_SETTING,
-                    listJobDic[ServiceConfigName.INSERT_AFFILIATE_SETTING]
-                );
+                    listJobDic[ServiceConfigName.INSERT_AFFILIATE_SETTING]);
 
-
-            //InitialInsertAffInfoDataTask
+            // InitialInsertAffInfoDataTask
             services.AddScoped<InitialInsertAffInfoDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING,
-                    listJobDic[ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING]
-                );
+                    listJobDic[ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING]);
+        }
 
-            //UpdateMasterDataCacheTask
+        private static void AddMasterDataCacheTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // UpdateMasterDataCacheTask
             services.AddScoped<UpdateMasterDataCacheTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING,
-                    listJobDic[ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING]
-                );
+                    listJobDic[ServiceConfigName.UPDATE_MASTER_DATA_CACHE_SETTING]);
+        }
 
-            //FetchTagDataTask
+        private static void AddTagTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
+        {
+            // FetchTagDataTask
             services.AddScoped<FetchTagDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.PULL_TAG_SETTING,
-                    listJobDic[ServiceConfigName.PULL_TAG_SETTING]
-                );
+                    listJobDic[ServiceConfigName.PULL_TAG_SETTING]);
         }
 
         private static void RegisterFetchDataTask(Dictionary<string, FetchServiceSetting> listJobDic)

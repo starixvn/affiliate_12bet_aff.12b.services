@@ -1,6 +1,6 @@
 ﻿namespace Aff12B.Common.DataDomain.Models
 {
-    public class WithdrawalInfoModel
+    public class WithdrawalInfoModel : IHasUpdateTime
     {
         public int WithdrawalId { get; set; }
 

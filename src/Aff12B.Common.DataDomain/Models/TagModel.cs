@@ -1,6 +1,6 @@
 namespace Aff12B.Common.DataDomain.Models
 {
-    public class TagModel
+    public class TagModel : IHasUpdateTime
     {
         public int Id { get; set; }
 

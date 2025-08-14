@@ -140,7 +140,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
                 {
                     if (SupportedSites.Any(supportSiteCode => string.Compare(supportSiteCode, command.SiteName, StringComparison.OrdinalIgnoreCase) == 0))
                     {
-                        await InsertMembers(command, fromDate, toDate);
+                        await InsertMembers(command);
                     }
                     else
                     {
@@ -177,7 +177,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
             }
         }
 
-        private async Task InsertMembers(InsertMemberInfoCommand command, DateTime fromDate, DateTime toDate)
+        private async Task InsertMembers(InsertMemberInfoCommand command)
         {
             try
             {

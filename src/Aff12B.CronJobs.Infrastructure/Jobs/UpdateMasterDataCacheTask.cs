@@ -32,7 +32,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
             _dynamicRepository = dynamicRepository ?? throw new ArgumentNullException(nameof(dynamicRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
+            _licenseeSiteSetting = config.Value;
         }
 
         [DisableConcurrentExecution(60)]
