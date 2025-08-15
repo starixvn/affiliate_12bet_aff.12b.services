@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <ResultsDirectory>./tests/TestResults/</ResultsDirectory>
+          <Exclude>
+            [*]*.Program
+            [*]*.Startup
+            [*]*Migrations*
+            [*]*Designer*
+            [*]*.Constants.*
+            [Aff12B.Common.Tests]*
+            [Aff12B.Tests.Common]*
+            [Aff12B.*.Tests]*
+            [*Test*]*
+            [*Mock*]*
+            [*Builder*]*
+            [*Fixture*]*
+            [*TestUtilities*]*
+            [*TestInfrastructure*]*
+          </Exclude>
+          <ExcludeByFile>
+            **/Program.cs
+            **/Startup.cs
+            **/*Constants.cs
+            **/tests/Aff12B.Common.Tests/**/*
+            **/tests/Aff12B.Tests.Common/**/*
+            **/tests/**/Builders/**/*
+            **/tests/**/Mocks/**/*
+            **/tests/**/Fixtures/**/*
+            **/tests/**/TestUtilities.cs
+            **/tests/**/TestInfrastructureTests.cs
+            **/TestResults/**/*
+          </ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

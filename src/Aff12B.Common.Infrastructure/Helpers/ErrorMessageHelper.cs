@@ -82,7 +82,7 @@ namespace Aff12B.Common.Infrastructure.Helpers
             }
         }
 
-        private static IDictionary<string, object> GetDbExceptionInfo(Exception exception)
+        private static Dictionary<string, object> GetDbExceptionInfo(Exception exception)
         {
             var dbInfo = new Dictionary<string, object>();
             BindSqlExceptionInfo(exception, dbInfo);
@@ -90,7 +90,7 @@ namespace Aff12B.Common.Infrastructure.Helpers
             return dbInfo;
         }
 
-        private static void BindFanexDataExceptionInfo(Exception exception, IDictionary<string, object> dbInfo)
+        private static void BindFanexDataExceptionInfo(Exception exception, Dictionary<string, object> dbInfo)
         {
             if (exception is ObjectDbException fanexDataException)
             {
@@ -128,7 +128,7 @@ namespace Aff12B.Common.Infrastructure.Helpers
             }
         }
 
-        private static void BindSqlExceptionInfo(Exception exception, IDictionary<string, object> dbInfo)
+        private static void BindSqlExceptionInfo(Exception exception, Dictionary<string, object> dbInfo)
         {
             if (exception is SqlException sqlException)
             {
@@ -144,7 +144,7 @@ namespace Aff12B.Common.Infrastructure.Helpers
                         .Aggregate((firstPair, secondPair) => $"{firstPair};{secondPair}")
                : string.Empty;
 
-        private static IDictionary<string, object> GetRequestInfo(HttpContext context)
+        private static Dictionary<string, object> GetRequestInfo(HttpContext context)
         {
             var request = context.Request;
             return request == null
