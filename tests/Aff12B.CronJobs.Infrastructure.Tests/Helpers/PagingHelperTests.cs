@@ -255,39 +255,35 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Helpers
             GC.Collect();
         }
 
-        //[Theory]
-        //[InlineData(0)] // Edge case: zero page size causes OutOfMemoryException
-        //public async Task PagingData_ZeroPageSize_ShouldThrowOutOfMemoryException(int pageSize)
-        //{
-        //    // Arrange
-        //    var data = new List<int> { 1, 2, 3 };
+        [Theory]
+        [InlineData(0)]   // Zero page size
+        [InlineData(-1)]  // Negative page size
+        [InlineData(-10)] // Large negative page size
+        public void PagingData_InvalidPageSize_ShouldThrowArgumentException(int pageSize)
+        {
+            // Arrange
+            var data = new List<int> { 1, 2, 3 };
 
-        //    // Act & Assert
-        //                // The current implementation throws OutOfMemoryException for zero page size
-        //    // This test documents the current behavior
-        //    // Use timeout to prevent CI/CD hanging
-        //    var act = async () =>
-        //    {
-        //        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        //        var task = Task.Run(() => PagingHelper.PagingData(data, pageSize).Take(10).ToList(), cts.Token);
-        //        return await task;
-        //    };
+            // Act & Assert - Should throw ArgumentException immediately (no infinite loop)
+            var act = () => PagingHelper.PagingData(data, pageSize);
+            act.Should().Throw<ArgumentException>()
+               .WithMessage("Page size must be greater than zero*")
+               .And.ParamName.Should().Be("max");
+        }
 
-        //    // The implementation causes infinite loop with zero page size leading to OutOfMemoryException or timeout
-        //    await act.Should().ThrowAsync<Exception>();
+        [Fact]
+        public void PagingData_NullData_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            List<int> data = null;
+            var pageSize = 5;
 
-        //    // Verify the exception type separately to avoid complex async matching
-        //    try
-        //    {
-        //        await act();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ex.Should().Match(e => e is OutOfMemoryException || 
-        //                              e is OperationCanceledException ||
-        //                              e is AggregateException);
-        //    }
-        //}
+            // Act & Assert - Should throw ArgumentNullException immediately
+            var act = () => PagingHelper.PagingData(data, pageSize);
+            act.Should().Throw<ArgumentNullException>()
+               .WithMessage("*cannot be null*")
+               .And.ParamName.Should().Be("datas");
+        }
 
         [Fact]
         public void PagingData_VerifyLazyEvaluation_ShouldNotEvaluateUntilEnumerated()

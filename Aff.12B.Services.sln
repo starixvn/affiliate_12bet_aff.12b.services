@@ -50,6 +50,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aff12B.CronJobs.Core.Tests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aff12B.CronJobs.Infrastructure.Tests", "tests\Aff12B.CronJobs.Infrastructure.Tests\Aff12B.CronJobs.Infrastructure.Tests.csproj", "{88888888-8888-8888-8888-888888888888}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Aff12B.CronJobs.Host.Tests", "tests\Aff12B.CronJobs.Host.Tests\Aff12B.CronJobs.Host.Tests.csproj", "{99999999-9999-9999-9999-999999999999}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -252,6 +254,18 @@ Global
 		{88888888-8888-8888-8888-888888888888}.Release|x64.Build.0 = Release|Any CPU
 		{88888888-8888-8888-8888-888888888888}.Release|x86.ActiveCfg = Release|Any CPU
 		{88888888-8888-8888-8888-888888888888}.Release|x86.Build.0 = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|x64.Build.0 = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Debug|x86.Build.0 = Debug|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|x64.ActiveCfg = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|x64.Build.0 = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|x86.ActiveCfg = Release|Any CPU
+		{99999999-9999-9999-9999-999999999999}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -276,6 +290,7 @@ Global
 		{66666666-6666-6666-6666-666666666666} = {A1B2C3D4-E5F6-7890-1234-567890ABCDEF}
 		{77777777-7777-7777-7777-777777777777} = {A1B2C3D4-E5F6-7890-1234-567890ABCDEF}
 		{88888888-8888-8888-8888-888888888888} = {A1B2C3D4-E5F6-7890-1234-567890ABCDEF}
+		{99999999-9999-9999-9999-999999999999} = {A1B2C3D4-E5F6-7890-1234-567890ABCDEF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D665D0D5-5F87-4D61-9A16-B91FEB6F358B}

@@ -4,6 +4,16 @@
     {
         public static IEnumerable<IEnumerable<T>> PagingData<T>(IEnumerable<T> datas, int max)
         {
+            if (max <= 0)
+            {
+                throw new ArgumentException("Page size must be greater than zero", nameof(max));
+            }
+
+            if (datas == null)
+            {
+                throw new ArgumentNullException(nameof(datas), "datas cannot be null");
+            }
+
             var result = new List<IEnumerable<T>>
             {
                 datas.Take(max)

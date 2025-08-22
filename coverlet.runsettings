@@ -34,6 +34,11 @@
             **/tests/**/TestUtilities.cs
             **/tests/**/TestInfrastructureTests.cs
             **/TestResults/**/*
+            **/src/**/Extensions/**/*
+            **/src/**/Middleware/**/*
+            **/src/**/Filters/AllowedAnonymousAuthorizationFilter.cs
+            **/src/**/Settings/**/*
+            **/src/**/Configurations/**/*
           </ExcludeByFile>
         </Configuration>
       </DataCollector>

@@ -547,7 +547,81 @@ public async Task TestInfiniteLoop_ShouldThrowException()
 }
 ```
 
-### 22. ELIMINATE DEADLOCK PATTERNS
+### 22. PREVENT INFINITE LOOPS IN TESTS
+
+**CRITICAL**: Infinite loops cause 1+ hour CI/CD timeouts. Always check for these patterns:
+
+#### **Root Cause Analysis for CI/CD Timeouts:**
+```bash
+# Step 1: Search for infinite loop patterns
+grep -r "while.*true\|pageSize.*0\|max.*0\|Skip(0)" tests/
+grep -r "PagingHelper\|infinite\|timeout\|hang" tests/
+
+# Step 2: Check commented out tests (often indicate known issues)
+grep -r "//.*InlineData.*0\|//.*Theory" tests/
+```
+
+#### **Dangerous Patterns That Cause Infinite Loops:**
+```csharp
+// ❌ CRITICAL: These cause 1+ hour CI/CD hangs
+PagingHelper.PagingData(data, 0);        // pageSize = 0 → infinite loop
+while (remain.Any()) {
+    remain = remain.Skip(0);             // Skip(0) = no progress = infinite
+}
+
+// ❌ DANGEROUS: Zero values in parameterized tests
+[Theory]
+[InlineData(0)] // This will hang CI/CD for hours!
+public void Method_WithZeroPageSize(int pageSize)
+{
+    PagingHelper.PagingData(data, pageSize); // INFINITE LOOP!
+}
+```
+
+#### **Safe Patterns:**
+```csharp
+// ✅ SAFE: Input validation prevents infinite loops (IMPLEMENTED)
+public static IEnumerable<IEnumerable<T>> PagingData<T>(IEnumerable<T> datas, int max)
+{
+    // CRITICAL FIX: Prevent infinite loop with zero or negative page size
+    if (max <= 0)
+        throw new ArgumentException("Page size must be greater than zero", nameof(max));
+
+    // Handle null data
+    if (datas == null)
+        throw new ArgumentNullException(nameof(datas));
+
+    // Safe implementation continues...
+}
+
+// ✅ SAFE: Test the validation instead of the infinite loop (IMPLEMENTED)
+[Theory]
+[InlineData(0)]   // Zero page size
+[InlineData(-1)]  // Negative page size
+[InlineData(-10)] // Large negative page size
+public void PagingData_InvalidPageSize_ShouldThrowArgumentException(int pageSize)
+{
+    var act = () => PagingHelper.PagingData(data, pageSize);
+    act.Should().Throw<ArgumentException>()
+       .WithMessage("Page size must be greater than zero*")
+       .And.ParamName.Should().Be("max");
+}
+
+// ✅ SAFE: Timeout protection for risky operations
+[Fact]
+public async Task RiskyOperation_ShouldCompleteWithTimeout()
+{
+    var act = async () =>
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var task = Task.Run(() => PotentiallyInfiniteOperation(), cts.Token);
+        return await task; // Will timeout after 5 seconds
+    };
+    await act.Should().ThrowAsync<Exception>();
+}
+```
+
+### 23. ELIMINATE DEADLOCK PATTERNS
 Never use blocking calls on async operations in tests.
 
 ```csharp
@@ -797,7 +871,136 @@ public class HeavyFixture : IDisposable
 }
 ```
 
-### 27. MONITOR MEMORY USAGE
+### 27. PROGRAM.CS AND STARTUP.CS TESTING (NEW RULE)
+**MANDATORY**: All Program.cs and Startup.cs files must have comprehensive unit tests to validate bootstrap functionality.
+
+#### **Why This Rule Exists:**
+Bootstrap files are critical for application startup and often contain configuration logic that can fail silently. Testing these files ensures:
+- Configuration loading works correctly across environments
+- Service registration is complete and valid
+- Middleware pipeline is configured properly
+- Environment-specific behavior works as expected
+
+#### **What to Test in Program.cs:**
+```csharp
+// ✅ REQUIRED: Test configuration patterns
+[Fact]
+public void Program_ShouldSupportBusinessScenario_ConfigurationBuilderPattern()
+{
+    // Arrange - Configuration builder pattern used in Program.cs
+    var builder = WebApplication.CreateBuilder();
+
+    // Act - Test configuration setup pattern from Program.cs
+    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+    builder.Configuration.AddEnvironmentVariables();
+
+    // Assert - Should support configuration loading pattern
+    builder.Should().NotBeNull();
+    builder.Configuration.Should().NotBeNull();
+}
+
+// ✅ REQUIRED: Test startup integration
+[Fact]
+public void Program_ShouldSupportBusinessScenario_StartupClassIntegration()
+{
+    // Arrange - Startup class integration pattern
+    var builder = WebApplication.CreateBuilder();
+    
+    // Act - Test Startup class instantiation pattern from Program.cs
+    var startup = new Startup(builder.Configuration);
+
+    // Assert - Should support Startup class integration
+    startup.Should().NotBeNull();
+}
+
+// ✅ REQUIRED: Test environment handling
+[Fact]
+public void Program_ShouldSupportBusinessScenario_EnvironmentConfiguration()
+{
+    // Test both Development and Production environments
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Production";
+    
+    var env = builder.Environment;
+    env.IsProduction().Should().BeTrue();
+}
+```
+
+#### **What to Test in Startup.cs:**
+```csharp
+// ✅ REQUIRED: Test service registration
+[Fact]
+public void ConfigureServices_ShouldSupportBusinessScenario_ServiceRegistration()
+{
+    var builder = WebApplication.CreateBuilder();
+    var services = new ServiceCollection();
+    var startup = new Startup(builder.Configuration);
+
+    // Act
+    startup.ConfigureServices(services);
+
+    // Assert - Should register essential services
+    services.Should().NotBeEmpty();
+    services.Should().Contain(s => s.ServiceType.Name.Contains("Controller"));
+}
+
+// ✅ REQUIRED: Test middleware configuration
+[Fact]
+public void Configure_ShouldSupportBusinessScenario_MiddlewarePipelineConfiguration()
+{
+    var builder = WebApplication.CreateBuilder();
+    var startup = new Startup(builder.Configuration);
+    startup.ConfigureServices(builder.Services);
+    
+    using var app = builder.Build();
+
+    // Act & Assert - Should configure middleware without throwing
+    var act = () => startup.Configure(app, app.Environment);
+    act.Should().NotThrow();
+}
+
+// ✅ REQUIRED: Test environment-specific behavior
+[Fact]
+public void Configure_ShouldSupportBusinessScenario_ProductionEnvironment()
+{
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Production";
+    
+    var startup = new Startup(builder.Configuration);
+    startup.ConfigureServices(builder.Services);
+    using var app = builder.Build();
+
+    // Should handle production environment
+    var act = () => startup.Configure(app, app.Environment);
+    act.Should().NotThrow();
+}
+```
+
+#### **Business Scenarios to Cover:**
+- **Configuration Loading**: Validate appsettings.json, environment variables, and configuration binding
+- **Service Registration**: Ensure all required services are registered with correct lifetimes
+- **Middleware Pipeline**: Verify middleware order and configuration
+- **Environment Handling**: Test Development, Staging, and Production behaviors
+- **Authentication/Authorization**: Validate security configuration (for APIs)
+- **Health Checks**: Ensure monitoring endpoints are configured
+- **Logging**: Verify logging configuration and providers
+- **Database Integration**: Test connection string handling and service registration
+- **External Dependencies**: Validate third-party service integration (Redis, Hangfire, etc.)
+
+#### **Testing Approach:**
+1. **Use Real WebApplicationBuilder**: Don't mock the core framework components
+2. **Test Configuration Patterns**: Focus on the patterns used in your actual Program.cs
+3. **Validate Service Registration**: Ensure services can be resolved and have correct lifetimes
+4. **Test Environment Behavior**: Verify different environments work correctly
+5. **Avoid Complex Mocking**: Use in-memory configuration and simple validation
+
+#### **Coverage Requirements:**
+- **Program.cs**: 100% coverage of configuration and startup patterns
+- **Startup.cs**: 100% coverage of ConfigureServices and Configure methods
+- **Environment Scenarios**: Test at least Development and Production
+- **Critical Dependencies**: Test registration of business-critical services
+
+### 28. MONITOR MEMORY USAGE
 Implement memory monitoring to catch issues early.
 
 ```powershell
@@ -814,20 +1017,20 @@ Get-Process -Name "dotnet" |
 
 ## 🎯 QUALITY GATES
 
-### 28. COVERAGE TARGETS
+### 29. COVERAGE TARGETS
 - **Critical Components**: **100%** coverage
 - **Overall Line Coverage**: **>80%**
 - **Overall Branch Coverage**: **>80%**
 - **Overall Method Coverage**: **>80%**
 
-### 29. TEST SUITE HEALTH METRICS
+### 30. TEST SUITE HEALTH METRICS
 - **All Tests Passing**: Required
 - **Fast Execution**: <1 minute for full suite (achieved: 49 seconds)
 - **Individual Project**: <35 seconds per test project
 - **Maintainable**: Clear, focused tests
 - **Business-Focused**: Real scenarios tested
 
-### 30. MEMORY PERFORMANCE TARGETS
+### 31. MEMORY PERFORMANCE TARGETS
 - **Per Process Memory**: <50MB (Green), 50-100MB (Yellow), >100MB (Red)
 - **Total Memory Usage**: <1GB for full test suite
 - **Memory Growth**: No continuous growth during test execution
@@ -927,12 +1130,14 @@ Get-Process -Name "dotnet" |
 - **Solution**: Reduced to 20-25 records, cached reflection, explicit GC
 - **Result**: 60% improvement (83s → 33s)
 
-### **The CI/CD Timeout Crisis**
+### **The CI/CD Timeout Crisis (RESOLVED ✅)**
 - **Problem**: GitLab CI/CD pipeline timing out after 1 hour on single test
-- **Root Cause**: `PagingData_ZeroPageSize_ShouldThrowOutOfMemoryException` creating infinite loop
+- **Root Cause**: `PagingHelper.PagingData(data, 0)` creating infinite loop when `pageSize = 0`
+- **Technical Issue**: `remain.Skip(0)` never progresses, `while (remain.Any())` loops forever
 - **Local vs CI**: Test throws OutOfMemoryException locally, but hangs indefinitely in CI
-- **Solution**: Added 5-second timeout with `CancellationTokenSource` and `Task.Run`
-- **Result**: Test completes in 34 seconds instead of hanging for 1+ hours
+- **PERMANENT FIX**: Added input validation to `PagingHelper.PagingData` method
+- **Test Update**: Replaced dangerous test with safe validation test
+- **Result**: **INFINITE LOOP ELIMINATED** - method now throws `ArgumentException` immediately
 
 ### **Prevention Strategies**
 1. **Monitor Memory Early**: Set up alerts for >100MB per process
