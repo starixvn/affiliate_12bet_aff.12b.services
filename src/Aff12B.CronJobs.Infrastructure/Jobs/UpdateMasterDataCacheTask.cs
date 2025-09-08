@@ -1,4 +1,3 @@
-using Aff12B.Common.DataDomain.Models;
 using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
@@ -33,7 +32,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
             _dynamicRepository = dynamicRepository ?? throw new ArgumentNullException(nameof(dynamicRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
+            _licenseeSiteSetting = config.Value;
         }
 
         [DisableConcurrentExecution(60)]
@@ -96,15 +95,16 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             {
                 // Fetch master data from stored procedure using site prefix
                 var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
-                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateCommGroup>(criteria);
+                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateDeal, LandingPageSetting>(criteria);
 
-               return new MasterInfoValidation
-            {
-                SpecialDomainMappings = results.FirstResultSet,
-                DomainMappings = results.SecondResultSet,
-                LanguageReferences = results.ThirdResultSet,
-                AffCommGroups = results.FourthResultSet,
-            };
+                return new MasterInfoValidation
+                {
+                    SpecialDomainMappings = results.FirstResultSet,
+                    DomainMappings = results.SecondResultSet,
+                    LanguageReferences = results.ThirdResultSet,
+                    AffCommGroups = results.FourthResultSet,
+                    LandingPages = results.FifthResultSet
+                };
             }
             catch (Exception ex)
             {

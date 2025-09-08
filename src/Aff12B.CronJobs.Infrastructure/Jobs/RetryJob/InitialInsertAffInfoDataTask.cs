@@ -48,7 +48,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             _liceseeApi = licenseeApi;
             _logger = logger;
             FetchServiceSetting = configuration.Get(ServiceConfigName.INITIAL_INSERT_AFFILIATE_SETTING);
-            _licenseeSiteSetting = config.Value ?? throw new NullReferenceException(nameof(_licenseeSiteSetting));
+            _licenseeSiteSetting = config.Value;
         }
 
 

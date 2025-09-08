@@ -16,6 +16,8 @@
 
         public const string PULL_SERVER_INFO_SETTING = "PullServerInfoSetting";
 
+        public const string PULL_TAG_SETTING = "PullTagSetting";
+
         public const string PULL_DEPOSIT_INFO_SETTING = "PullDepositInfoSetting";
 
         public const string PULL_REAL_DEPOSIT_INFO_SETTING = "PullRealDepositInfoSetting";

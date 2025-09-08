@@ -1,8 +1,6 @@
-﻿using Fanex.Data.Repository;
-
-namespace Aff12B.Ext.API.Infastructure.Criteria
+﻿namespace Aff12B.Ext.API.Infastructure.Criteria
 {
-    public class GetCustomersCriteria : CriteriaBase
+    public class GetCustomersCriteria : PagingCriteria
     {
         public GetCustomersCriteria(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize)
         {
@@ -15,13 +13,5 @@ namespace Aff12B.Ext.API.Infastructure.Criteria
         public override string GetSettingKey() => "API_Get_Customer";
 
         public override bool IsValid() => true;
-
-        public DateTime FromDate { get; }
-
-        public DateTime ToDate { get; set; }
-
-        public int PageIndex { get; set; }
-
-        public int PageSize { get; }
     }
 }

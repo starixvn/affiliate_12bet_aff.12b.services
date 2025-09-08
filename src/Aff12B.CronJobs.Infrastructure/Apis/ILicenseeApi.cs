@@ -28,6 +28,9 @@ namespace Aff12B.CronJobs.Infrastructure.Apis
         [Get("/setting/GetTpGameType")]
         Task<IEnumerable<TpGameTypeModel>> GetGameTypeAsync();
 
+        [Get("/Tag/GetTags")]
+        Task<IEnumerable<TagModel>> GetTagsAsync(DateTime updatedTime, int batchCount = 2000);
+
         [Get("/betreport/GetDepositInfo")]
         Task<IEnumerable<DepositInfoModel>> GetDepositInfo(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000);
 

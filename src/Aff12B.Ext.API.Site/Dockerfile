@@ -2,6 +2,7 @@ FROM hub.nexdev.net/base/dotnet/core/sdk:8.0-alpine AS builder
 
 WORKDIR "/src"
 COPY ["/src/Aff12B.Common.DataDomain", "./Aff12B.Common.DataDomain"]
+COPY ["/src/Aff12B.Common.Infrastructure", "./Aff12B.Common.Infrastructure"]
 COPY ["/src/Aff12B.Ext.API.Core", "./Aff12B.Ext.API.Core"]
 COPY ["/src/Aff12B.Ext.API.Infastructure", "./Aff12B.Ext.API.Infastructure"]
 COPY ["/src/Aff12B.Ext.API.Site/Aff12B.Ext.API.Site.csproj", "./Aff12B.Ext.API.Site/Aff12B.Ext.API.Site.csproj"]
