@@ -16,6 +16,7 @@
     <PackageReference Include="MySqlConnector" Version="2.3.7" />
     <PackageReference Include="Refit" Version="8.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
   </ItemGroup>
 
 </Project>
