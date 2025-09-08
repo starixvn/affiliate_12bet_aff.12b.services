@@ -32,3 +32,5 @@ _ReSharper*/
 packages/
 
 .fake
+
+CoverageReport/

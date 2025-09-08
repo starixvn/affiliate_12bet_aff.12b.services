@@ -197,7 +197,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
 
             foreach (var group in groupCustomers)
             {
-                var importData = GenerateImportedDataBySiteName(group.Key, group.ToList());
+                var importData = GenerateImportedDataBySiteName(group.Key, [.. group]);
 
                 commandList.Add(importData);
             }
@@ -255,7 +255,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer
                    .Append(attributeName)
                    .Append("=\"")
                    .Append(HttpUtility.HtmlEncode(value))
-                   .Append("\"");
+                   .Append('"');
         }
 
         private DateTime GetAdjustmentTime(DateTime fromDate)
