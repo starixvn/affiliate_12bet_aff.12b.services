@@ -2,8 +2,8 @@ using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
+using Aff12B.CronJobs.Infrastructure.Services;
 using Aff12B.CronJobs.Infrastructure.Tests.Helpers;
-using Fanex.Caching;
 using Fanex.Data.Repository;
 using FluentAssertions;
 using Hangfire;
@@ -20,7 +20,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
     /// </summary>
     public class UpdateMasterDataCacheTaskSimpleTests
     {
-        private readonly Mock<ICacheService> _mockCacheService;
+        private readonly Mock<IRedisService> _mockRedisService;
         private readonly Mock<IDynamicRepository> _mockDynamicRepository;
         private readonly Mock<IOptions<LicenseeSiteSetting>> _mockOptions;
         private readonly Mock<ILogger<UpdateMasterDataCacheTask>> _mockLogger;
@@ -29,7 +29,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
 
         public UpdateMasterDataCacheTaskSimpleTests()
         {
-            _mockCacheService = new Mock<ICacheService>();
+            _mockRedisService = new Mock<IRedisService>();
             _mockDynamicRepository = new Mock<IDynamicRepository>();
             _mockOptions = new Mock<IOptions<LicenseeSiteSetting>>();
             _mockLogger = new Mock<ILogger<UpdateMasterDataCacheTask>>();
@@ -47,7 +47,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             _mockOptions.Setup(x => x.Value).Returns(_licenseeSiteSetting);
 
             _task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -58,7 +58,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Act & Assert - Constructor should not throw
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -68,7 +68,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         }
 
         [Fact]
-        public void Constructor_ShouldThrowArgumentNullException_WhenCacheServiceIsNull()
+        public void Constructor_ShouldThrowArgumentNullException_WhenRedisServiceIsNull()
         {
             // Act & Assert - Should throw ArgumentNullException for null cache service
             Action act = () => new UpdateMasterDataCacheTask(
@@ -77,7 +77,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
                 _mockOptions.Object,
                 _mockLogger.Object);
 
-            act.Should().Throw<ArgumentNullException>().WithParameterName("cacheService");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("redisService");
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Act & Assert - Should throw ArgumentNullException for null repository
             Action act = () => new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 null,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -98,7 +98,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Act & Assert - Should throw ArgumentNullException for null logger
             Action act = () => new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 null);
@@ -152,7 +152,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             mockEmptyOptions.Setup(x => x.Value).Returns(emptyLicenseeSiteSetting);
 
             var taskWithEmptySites = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 mockEmptyOptions.Object,
                 _mockLogger.Object);
@@ -161,7 +161,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             await taskWithEmptySites.UpdateMasterDataCacheAsync();
 
             // Assert - Should not call any cache methods
-            _mockCacheService.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CacheItemOptions>()), Times.Never);
+            _mockRedisService.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             mockNullOptions.Setup(x => x.Value).Returns(nullLicenseeSiteSetting);
 
             var taskWithNullSites = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 mockNullOptions.Object,
                 _mockLogger.Object);
@@ -186,7 +186,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             await taskWithNullSites.UpdateMasterDataCacheAsync();
 
             // Assert - Should not call any cache methods
-            _mockCacheService.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CacheItemOptions>()), Times.Never);
+            _mockRedisService.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             publicConstructor.Should().NotBeNull();
             var parameters = publicConstructor.GetParameters();
             parameters.Should().HaveCount(4);
-            parameters[0].ParameterType.Should().Be<ICacheService>();
+            parameters[0].ParameterType.Should().Be<IRedisService>();
             parameters[1].ParameterType.Should().Be<IDynamicRepository>();
             parameters[2].ParameterType.Should().Be<IOptions<LicenseeSiteSetting>>();
             parameters[3].ParameterType.Should().Be<ILogger<UpdateMasterDataCacheTask>>();
@@ -272,8 +272,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         public void UpdateMasterDataCacheTask_ShouldHaveCorrectFieldTypes()
         {
             // Act - Check private fields
-            var cacheServiceField = typeof(UpdateMasterDataCacheTask)
-                .GetField("_cacheService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var RedisServiceField = typeof(UpdateMasterDataCacheTask)
+                .GetField("_redisService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var dynamicRepositoryField = typeof(UpdateMasterDataCacheTask)
                 .GetField("_dynamicRepository", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var loggerField = typeof(UpdateMasterDataCacheTask)
@@ -282,8 +282,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
                 .GetField("_licenseeSiteSetting", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
             // Assert - Should have the expected field types
-            cacheServiceField.Should().NotBeNull();
-            cacheServiceField.FieldType.Should().Be<ICacheService>();
+            RedisServiceField.Should().NotBeNull();
+            RedisServiceField.FieldType.Should().Be<IRedisService>();
 
             dynamicRepositoryField.Should().NotBeNull();
             dynamicRepositoryField.FieldType.Should().Be<IDynamicRepository>();

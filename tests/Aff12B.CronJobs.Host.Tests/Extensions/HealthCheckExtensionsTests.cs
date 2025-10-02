@@ -3,7 +3,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Xunit;
 
 namespace Aff12B.CronJobs.Host.Tests.Extensions
@@ -66,7 +65,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Act & Assert - Should support production monitoring setup
             addMethod.Should().NotBeNull("because production systems require health check registration");
             useMethod.Should().NotBeNull("because production systems require health check endpoints");
-            
+
             addMethod.ReturnType.Should().Be<IHealthChecksBuilder>("because it should return builder for chaining");
             useMethod.ReturnType.Should().Be(typeof(void), "because it configures middleware pipeline");
         }
@@ -135,7 +134,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Act & Assert - Should support service mesh health monitoring
             addMethod.Should().NotBeNull("because service mesh requires health check registration");
             useMethod.Should().NotBeNull("because service mesh requires accessible health endpoints");
-            
+
             addMethod.GetParameters().Should().HaveCount(2, "because service mesh needs service collection and configuration");
             useMethod.GetParameters().Should().HaveCount(2, "because service mesh needs application builder and configuration");
         }
@@ -151,7 +150,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Act & Assert - Should support DevOps monitoring tools
             addMethod.Should().NotBeNull("because DevOps tools require comprehensive health monitoring registration");
             useMethod.Should().NotBeNull("because DevOps tools require accessible health endpoints for automation");
-            
+
             addMethod.IsStatic.Should().BeTrue("because extension methods are static for easy integration");
             useMethod.IsStatic.Should().BeTrue("because extension methods are static for easy integration");
         }
@@ -167,7 +166,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Act & Assert - Should support high availability configurations
             addMethod.Should().NotBeNull("because high availability setups require health check registration for failover");
             useMethod.Should().NotBeNull("because high availability setups require health endpoints for load balancing");
-            
+
             addMethod.ReturnType.Should().Be<IHealthChecksBuilder>("because multiple health checks are needed for HA");
         }
 
@@ -181,7 +180,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Act & Assert - Should follow consistent naming conventions
             methods.Should().AllSatisfy(method =>
             {
-                method.Name.Should().MatchRegex(@"^(Add|Use).*", 
+                method.Name.Should().MatchRegex(@"^(Add|Use).*",
                     "because extension methods should follow Add/Use naming pattern for DI and middleware");
             });
         }

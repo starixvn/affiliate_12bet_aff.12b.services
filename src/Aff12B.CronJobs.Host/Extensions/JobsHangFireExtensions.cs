@@ -7,6 +7,7 @@ using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Handlers;
+using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs;
 using Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer;
 using Aff12B.CronJobs.Infrastructure.Jobs.Bonus;
@@ -17,13 +18,11 @@ using Aff12B.CronJobs.Infrastructure.Jobs.Product9W;
 using Aff12B.CronJobs.Infrastructure.Jobs.RetryJob;
 using Aff12B.CronJobs.Infrastructure.Repository;
 using Aff12B.CronJobs.Infrastructure.Services;
-using Fanex.Caching;
-using Fanex.Caching.Redis;
 using Fanex.Data.Repository;
 using Hangfire;
 using ONEbook.UM.DependencyInjection;
 using Refit;
-
+using StackExchange.Redis;
 using System.Linq.Expressions;
 using System.Net;
 using static Aff12B.CronJobs.Infrastructure.Constants.ServiceConfigName;
@@ -90,8 +89,9 @@ namespace Aff12B.CronJobs.Host.Extensions
             services.AddScoped<ITrackerService, TimeTrackerService>();
 
             // Add Fanex Service
-            services.AddSingleton<ICacheService, CacheService>();
-            services.AddRedisCache(configuration.GetSection("fanex.caching.redis"));
+            RedisConnectionHelper.Initialize(configuration);
+            services.AddSingleton<IConnectionMultiplexer>(sp => RedisConnectionHelper.Connection);
+            services.AddSingleton<IRedisService, RedisService>();
             services.AddOneBookUmForService(configuration);
 
             return services;

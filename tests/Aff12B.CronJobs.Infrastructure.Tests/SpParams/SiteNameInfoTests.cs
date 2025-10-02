@@ -46,7 +46,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.SpParams
 
             // Act & Assert - Should support multiple site brand configurations
             var siteInfos = new[] { site1Info, site2Info, site3Info };
-            
+
             siteInfos.Should().AllSatisfy(siteInfo =>
             {
                 siteInfo.SName.Should().Be("BrandName");

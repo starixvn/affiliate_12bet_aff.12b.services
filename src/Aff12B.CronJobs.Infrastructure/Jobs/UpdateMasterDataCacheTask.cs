@@ -1,8 +1,8 @@
 using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
+using Aff12B.CronJobs.Infrastructure.Services;
 using Aff12B.CronJobs.Infrastructure.SpParams;
-using Fanex.Caching;
 using Fanex.Data.Repository;
 using Hangfire;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         private const string MASTER_DATA_CACHE_KEY_TEMPLATE = "Aff.{0}.Go.MasterData";
         private const int CacheSlidingExpirationInHours = 24;
 
-        private readonly ICacheService _cacheService;
+        private readonly IRedisService _redisService;
         private readonly IDynamicRepository _dynamicRepository;
         private readonly ILogger<UpdateMasterDataCacheTask> _logger;
 
@@ -24,12 +24,12 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
 
         public UpdateMasterDataCacheTask(
-            ICacheService cacheService,
+            IRedisService redisService,
             IDynamicRepository dynamicRepository,
             IOptions<LicenseeSiteSetting> config,
             ILogger<UpdateMasterDataCacheTask> logger)
         {
-            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+            _redisService = redisService ?? throw new ArgumentNullException(nameof(redisService));
             _dynamicRepository = dynamicRepository ?? throw new ArgumentNullException(nameof(dynamicRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _licenseeSiteSetting = config.Value;
@@ -69,11 +69,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         {
             try
             {
-                var cacheOptions = new CacheItemOptions
-                {
-                    SlidingExpiration = TimeSpan.FromHours(CacheSlidingExpirationInHours)
-                };
-                await _cacheService.SetAsync(cacheKey, masterData, cacheOptions);
+                var slidingExpiration = TimeSpan.FromHours(CacheSlidingExpirationInHours);
+                await _redisService.SetAsync(cacheKey, masterData, slidingExpiration);
 
                 _logger.LogInformation("Successfully updated master data cache for key: {CacheKey}, Site: {Site}",
                     cacheKey, sitePrefixProvider);

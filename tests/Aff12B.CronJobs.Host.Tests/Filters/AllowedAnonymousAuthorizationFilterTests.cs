@@ -1,7 +1,6 @@
 using Aff12B.CronJobs.Host.Filters;
 using FluentAssertions;
 using Hangfire.Dashboard;
-using Moq;
 using Xunit;
 
 namespace Aff12B.CronJobs.Host.Tests.Filters

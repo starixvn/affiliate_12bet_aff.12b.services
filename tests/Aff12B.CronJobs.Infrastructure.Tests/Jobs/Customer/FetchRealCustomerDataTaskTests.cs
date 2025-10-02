@@ -30,7 +30,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
             _mockLicenseeApi = new Mock<ILicenseeApi>();
             _mockTrackerService = new Mock<ITrackerService>();
             _mockOptions = new Mock<IOptionsSnapshot<FetchServiceSetting>>();
-            
+
             _fetchServiceSetting = new FetchServiceSetting
             {
                 AdjustmentValue = 5,
@@ -38,7 +38,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
                 SupportedPrefix = new[] { "REAL_", "LIVE_" },
                 PullInfoCron = "0 */5 * * * *"
             };
-            
+
             _mockOptions.Setup(x => x.Get(ServiceConfigName.PULL_REAL_CUSTOMER_SETTING))
                 .Returns(_fetchServiceSetting);
         }
@@ -79,7 +79,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
                 _mockOptions.Object);
 
             // Act - Access protected property through reflection
-            var property = typeof(BaseCustomerDataTask).GetProperty("IsNeedRealData", 
+            var property = typeof(BaseCustomerDataTask).GetProperty("IsNeedRealData",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var isNeedRealData = (bool)property.GetValue(task);
 

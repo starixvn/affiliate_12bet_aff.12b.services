@@ -1,4 +1,3 @@
-using Aff12B.Common.DataDomain.Models;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
@@ -31,7 +30,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
             _mockLicenseeApi = new Mock<ILicenseeApi>();
             _mockTrackerService = new Mock<ITrackerService>();
             _mockOptions = new Mock<IOptionsSnapshot<FetchServiceSetting>>();
-            
+
             _fetchServiceSetting = new FetchServiceSetting
             {
                 AdjustmentValue = 10,
@@ -39,7 +38,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
                 SupportedPrefix = new[] { "CUSTOMER_", "USER_" },
                 PullInfoCron = "0 0 */6 * * *"
             };
-            
+
             _mockOptions.Setup(x => x.Get(ServiceConfigName.PULL_CUSTOMER_SETTING))
                 .Returns(_fetchServiceSetting);
         }
@@ -287,7 +286,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
             // Act & Assert - Should support multi-tenant processing
             task.Should().NotBeNull("because multi-tenant systems require customer data isolation");
             _fetchServiceSetting.SupportedPrefix.Should().HaveCount(3, "because multiple tenants are supported");
-            _fetchServiceSetting.SupportedPrefix.Should().AllSatisfy(prefix => 
+            _fetchServiceSetting.SupportedPrefix.Should().AllSatisfy(prefix =>
                 prefix.Should().StartWith("TENANT_", "because prefixes identify tenant boundaries"));
         }
 
@@ -304,7 +303,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Customer
 
             // Act & Assert - Should support performance optimization
             task.Should().NotBeNull("because performance optimization is critical for large datasets");
-            _fetchServiceSetting.MaxTimeRange.Should().BeLessOrEqualTo(60, 
+            _fetchServiceSetting.MaxTimeRange.Should().BeLessOrEqualTo(60,
                 "because smaller time ranges improve processing performance");
         }
     }

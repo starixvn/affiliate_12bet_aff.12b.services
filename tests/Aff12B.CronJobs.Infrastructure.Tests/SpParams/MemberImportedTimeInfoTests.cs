@@ -46,7 +46,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.SpParams
             // Act & Assert - Should support multiple site configurations
             site1TimeInfo.SName.Should().Be("ImportTimestamp");
             site2TimeInfo.SName.Should().Be("ImportTimestamp");
-            
+
             site1TimeInfo.IsValid().Should().BeTrue();
             site2TimeInfo.IsValid().Should().BeTrue();
         }
@@ -119,7 +119,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.SpParams
             // Assert - Should handle null/empty setting names
             nullSettingInfo.SName.Should().BeNull();
             emptySettingInfo.SName.Should().Be("");
-            
+
             nullSettingInfo.IsValid().Should().BeTrue();
             emptySettingInfo.IsValid().Should().BeTrue();
         }

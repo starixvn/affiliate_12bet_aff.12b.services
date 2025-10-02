@@ -1,7 +1,7 @@
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Fanex.Caching;
+using Aff12B.CronJobs.Infrastructure.Services;
 using Fanex.Data.Repository;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -19,7 +19,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
     /// </summary>
     public class UpdateMasterDataCacheTaskTests
     {
-        private readonly Mock<ICacheService> _mockCacheService;
+        private readonly Mock<IRedisService> _mockRedisService;
         private readonly Mock<IDynamicRepository> _mockDynamicRepository;
         private readonly Mock<ILogger<UpdateMasterDataCacheTask>> _mockLogger;
         private readonly Mock<IOptions<LicenseeSiteSetting>> _mockOptions;
@@ -27,16 +27,16 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
 
         public UpdateMasterDataCacheTaskTests()
         {
-            _mockCacheService = new Mock<ICacheService>();
+            _mockRedisService = new Mock<IRedisService>();
             _mockDynamicRepository = new Mock<IDynamicRepository>();
             _mockLogger = new Mock<ILogger<UpdateMasterDataCacheTask>>();
             _mockOptions = new Mock<IOptions<LicenseeSiteSetting>>();
-            
+
             _licenseeSiteSetting = new LicenseeSiteSetting
             {
                 SupportedSites = new[] { "CasinoSite", "SportsBetting", "LiveCasino" }
             };
-            
+
             _mockOptions.Setup(x => x.Value).Returns(_licenseeSiteSetting);
         }
 
@@ -45,7 +45,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -56,7 +56,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         }
 
         [Fact]
-        public void Constructor_ShouldThrowArgumentNullException_WhenCacheServiceIsNull()
+        public void Constructor_ShouldThrowArgumentNullException_WhenRedisServiceIsNull()
         {
             // Arrange & Act
             var act = () => new UpdateMasterDataCacheTask(
@@ -67,7 +67,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
 
             // Assert - Should throw ArgumentNullException
             act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("cacheService");
+                .WithParameterName("redisService");
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var act = () => new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 null,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -90,7 +90,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var act = () => new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 null);
@@ -106,7 +106,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - No supported sites scenario
             _licenseeSiteSetting.SupportedSites = null;
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -124,7 +124,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Empty supported sites scenario
             _licenseeSiteSetting.SupportedSites = new string[0];
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -142,7 +142,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Casino master data caching scenario
             _licenseeSiteSetting.SupportedSites = new[] { "PremiumCasino", "LiveCasino", "VIPCasino" };
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -150,7 +150,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Act & Assert - Should support casino master data caching
             task.Should().NotBeNull("because casino master data caching is critical for game operations");
             task.Should().BeAssignableTo<ICacheUpdateTask>("because it implements cache update interface");
-            
+
             _licenseeSiteSetting.SupportedSites.Should().AllSatisfy(site =>
                 site.Should().Contain("Casino", "because all sites should be casino-related"));
         }
@@ -161,7 +161,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Sports betting master data scenario
             _licenseeSiteSetting.SupportedSites = new[] { "SportsBettingPro", "LiveSports", "ESportsBetting" };
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -176,7 +176,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - Interface implementation checking
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -191,7 +191,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Multi-tenant caching scenario
             _licenseeSiteSetting.SupportedSites = new[] { "TenantA", "TenantB", "TenantC", "TenantD" };
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -206,7 +206,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - 24-hour cache expiration scenario
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -220,13 +220,13 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         public void UpdateMasterDataCacheTask_ShouldSupportDependencyInjection()
         {
             // Arrange - Dependency injection scenario
-            var cacheService = _mockCacheService.Object;
+            var RedisService = _mockRedisService.Object;
             var dynamicRepository = _mockDynamicRepository.Object;
             var options = _mockOptions.Object;
             var logger = _mockLogger.Object;
 
             // Act
-            var task = new UpdateMasterDataCacheTask(cacheService, dynamicRepository, options, logger);
+            var task = new UpdateMasterDataCacheTask(RedisService, dynamicRepository, options, logger);
 
             // Assert - Should accept dependencies through constructor
             task.Should().NotBeNull();
@@ -239,7 +239,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Performance optimization scenario
             _licenseeSiteSetting.SupportedSites = new[] { "HighTrafficSite" };
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
@@ -254,7 +254,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - Data consistency scenario
             var task = new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockRedisService.Object,
                 _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
