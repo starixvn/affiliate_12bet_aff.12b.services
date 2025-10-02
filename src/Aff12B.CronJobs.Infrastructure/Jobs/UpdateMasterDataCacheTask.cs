@@ -46,20 +46,17 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
 
             try
             {
-                foreach (var site in SupportedSites)
+                await Parallel.ForEachAsync(SupportedSites, async (site, _) =>
                 {
                     var sitePrefixProvider = _licenseeSiteSetting.GetCodePrefix(site);
-
-                    // Fetch master data from stored procedure for this site
                     var masterData = await GetMasterDataAsync(sitePrefixProvider);
 
                     if (masterData != null)
                     {
-                        // Update cache with site-specific key
                         var siteSpecificCacheKey = string.Format(MASTER_DATA_CACHE_KEY_TEMPLATE, sitePrefixProvider);
                         await UpdateCacheForSiteAsync(siteSpecificCacheKey, masterData, sitePrefixProvider);
                     }
-                }
+                });
             }
             catch (Exception ex)
             {
@@ -93,9 +90,13 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
         {
             try
             {
-                // Fetch master data from stored procedure using site prefix
                 var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
-                var results = await _dynamicRepository.FetchMultipleAsync<SpecialDomainMapping, DomainMapping, LanguageReference, AffiliateDeal, LandingPageSetting>(criteria);
+                var results = await _dynamicRepository.FetchMultipleAsync<
+                    SpecialDomainMapping,
+                    DomainMapping,
+                    LanguageReference,
+                    AffiliateDeal,
+                    LandingPageSetting>(criteria);
 
                 return new MasterInfoValidation
                 {
@@ -108,7 +109,9 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to fetch master data from stored procedure for site: {Site}", sitePrefixProvider);
+                _logger.LogError(ex,
+                                "Failed to fetch master data from stored procedure for site: {Site}",
+                                sitePrefixProvider);
                 throw;
             }
         }

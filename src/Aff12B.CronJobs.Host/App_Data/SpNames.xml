@@ -6,7 +6,7 @@
         <Setting Key="12B_Aff_API_AffiliateDetailInfo_Sel" SpName="Aff_API_AffiliateDetailInfo_Sel" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
     </Function>
     <Function Name="Affiliate_12B_MediaLinkMasterDataValidationCache">
-	    <Setting Key="12B_Aff_ClickStatistics_BulkCache" SpName="Aff_ClickStatistics_BulkCache_xtest" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
+	    <Setting Key="12B_Aff_ClickStatistics_BulkCache" SpName="Aff_ClickStatistics_BulkCache" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
     </Function>
     <Funtion Name="ThirdPartyImport">
         <Setting Key="Master_Task_API_Queue_Import" SpName="Task_API_Queue_Import" DbName="DB052.bodb_12B.wsv_lap"/>
