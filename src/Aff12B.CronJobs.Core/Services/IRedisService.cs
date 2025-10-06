@@ -1,4 +1,4 @@
-﻿namespace Aff12B.CronJobs.Infrastructure.Services
+﻿namespace Aff12B.CronJobs.Core.Services
 {
     public interface IRedisService
     {

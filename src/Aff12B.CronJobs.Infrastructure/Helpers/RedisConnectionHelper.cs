@@ -5,7 +5,7 @@
 
     public static class RedisConnectionHelper
     {
-        private static Lazy<ConnectionMultiplexer>? lazyConnection;
+        private static Lazy<ConnectionMultiplexer> lazyConnection;
         private static readonly object InitLock = new();
         private const int ConnectRetryCount = 3;
 

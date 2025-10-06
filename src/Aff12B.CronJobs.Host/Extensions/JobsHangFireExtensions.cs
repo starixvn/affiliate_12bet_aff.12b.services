@@ -87,6 +87,8 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             services.AddScoped<IDataTrackerService, DataTrackerService>();
             services.AddScoped<ITrackerService, TimeTrackerService>();
+            services.AddScoped<IMasterDataProviderService, MasterDataProviderService>();
+            services.AddScoped<IDataCacheService, DataCacheService>();
 
             // Add Fanex Service
             RedisConnectionHelper.Initialize(configuration);
@@ -362,7 +364,7 @@ namespace Aff12B.CronJobs.Host.Extensions
         private static void RegisterUpdateMasterDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
         {
             // Register the cache update task - runs every 10 minutes
-            RegisterTask<UpdateMasterDataCacheTask>($"{typeof(UpdateMasterDataCacheTask).Name}", listJobDic[UPDATE_MASTER_DATA_CACHE_SETTING].PullInfoCron, job => job.UpdateMasterDataCacheAsync());
+            RegisterTask<UpdateMasterDataCacheTask>($"{typeof(UpdateMasterDataCacheTask).Name}", listJobDic[UPDATE_MASTER_DATA_CACHE_SETTING].PullInfoCron, job => job.UpdateDataCacheAsync());
         }
 
         private static void RegisterTask<T>(string serviceId, string cronExpression, Expression<Func<T, Task>> methodCall)

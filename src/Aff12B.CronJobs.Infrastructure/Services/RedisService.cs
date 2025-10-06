@@ -1,4 +1,5 @@
-﻿using Aff12B.CronJobs.Infrastructure.Converters;
+﻿using Aff12B.CronJobs.Core.Services;
+using Aff12B.CronJobs.Infrastructure.Converters;
 using Polly;
 using Polly.Retry;
 using StackExchange.Redis;

@@ -1,115 +1,122 @@
-using Aff12B.CronJobs.Core.Domain.DTOs.AffLink;
+using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Aff12B.CronJobs.Infrastructure.Services;
-using Aff12B.CronJobs.Infrastructure.SpParams;
-using Fanex.Data.Repository;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs
 {
-    public class UpdateMasterDataCacheTask : ICacheUpdateTask
+    /// <summary>
+    /// Task responsible for updating master data cache for all supported sites.
+    /// Processes sites in parallel and handles errors gracefully.
+    /// </summary>
+    public class UpdateMasterDataCacheTask : IUpdateDataCacheTask
     {
-        private const string MASTER_DATA_CACHE_KEY_TEMPLATE = "Aff.{0}.Go.MasterData";
-        private const int CacheSlidingExpirationInHours = 24;
+        private const string CacheKeyTemplate = "Aff.{0}.Go.MasterData";
+        private const int CacheDurationInSeconds = 86400;
+        private const int MaxConcurrency = 10;
 
-        private readonly IRedisService _redisService;
-        private readonly IDynamicRepository _dynamicRepository;
+        private readonly IMasterDataProviderService _masterDataProviderService;
+        private readonly IDataCacheService _dataCacheService;
+        private readonly LicenseeSiteSetting _licenseeSiteSetting;
         private readonly ILogger<UpdateMasterDataCacheTask> _logger;
 
-        private readonly LicenseeSiteSetting _licenseeSiteSetting;
-
-        private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites;
+        private IEnumerable<string> SupportedSites => _licenseeSiteSetting?.SupportedSites ?? [];
 
         public UpdateMasterDataCacheTask(
-            IRedisService redisService,
-            IDynamicRepository dynamicRepository,
+            IMasterDataProviderService masterDataProviderService,
+            IDataCacheService dataCacheService,
             IOptions<LicenseeSiteSetting> config,
             ILogger<UpdateMasterDataCacheTask> logger)
         {
-            _redisService = redisService ?? throw new ArgumentNullException(nameof(redisService));
-            _dynamicRepository = dynamicRepository ?? throw new ArgumentNullException(nameof(dynamicRepository));
+            _masterDataProviderService = masterDataProviderService ?? throw new ArgumentNullException(nameof(masterDataProviderService));
+            _dataCacheService = dataCacheService ?? throw new ArgumentNullException(nameof(dataCacheService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _licenseeSiteSetting = config.Value;
+            _licenseeSiteSetting = config?.Value ?? throw new ArgumentNullException(nameof(config));
         }
 
         [DisableConcurrentExecution(60)]
         [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Fail, Attempts = 1)]
-        public async Task UpdateMasterDataCacheAsync()
+        public async Task UpdateDataCacheAsync()
         {
-            if (SupportedSites == null || !SupportedSites.Any())
+            var sites = SupportedSites.ToList();
+
+            if (!sites.Any())
             {
+                _logger.LogInformation("No supported sites found, skipping cache update.");
                 return;
             }
 
-            try
-            {
-                await Parallel.ForEachAsync(SupportedSites, async (site, _) =>
-                {
-                    var sitePrefixProvider = _licenseeSiteSetting.GetCodePrefix(site);
-                    var masterData = await GetMasterDataAsync(sitePrefixProvider);
+            _logger.LogInformation("Starting master data cache update for {Count} sites: {Sites}",
+                sites.Count, string.Join(", ", sites));
 
-                    if (masterData != null)
-                    {
-                        var siteSpecificCacheKey = string.Format(MASTER_DATA_CACHE_KEY_TEMPLATE, sitePrefixProvider);
-                        await UpdateCacheForSiteAsync(siteSpecificCacheKey, masterData, sitePrefixProvider);
-                    }
-                });
-            }
-            catch (Exception ex)
+            var errors = new ConcurrentBag<string>();
+            var successCount = 0;
+            var options = new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrency };
+
+            await Parallel.ForEachAsync(sites, options, async (site, _) =>
             {
-                _logger.LogError(ex, "Failed to update master data cache");
-                throw;
+                try
+                {
+                    await ProcessSiteAsync(site);
+                    Interlocked.Increment(ref successCount);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(site);
+                    _logger.LogError(ex, "Failed to process site: {Site}", site);
+                }
+            });
+
+            LogResults(sites.Count, successCount, errors);
+        }
+
+        private async Task ProcessSiteAsync(string site)
+        {
+            if (string.IsNullOrWhiteSpace(site))
+            {
+                throw new ArgumentException("Site name cannot be null or empty", nameof(site));
+            }
+
+            var sitePrefix = _licenseeSiteSetting.GetCodePrefix(site);
+            if (string.IsNullOrWhiteSpace(sitePrefix))
+            {
+                throw new InvalidOperationException($"Unable to determine code prefix for site: {site}");
+            }
+
+            var masterData = await _masterDataProviderService.GetMasterDataAsync(sitePrefix);
+            if (masterData == null)
+            {
+                _logger.LogWarning("No master data found for site: {Site} (prefix: {Prefix})", site, sitePrefix);
+                return;
+            }
+
+            var cacheKey = string.Format(CacheKeyTemplate, sitePrefix);
+            var success = await _dataCacheService.UpdateAsync(cacheKey, masterData, TimeSpan.FromSeconds(CacheDurationInSeconds));
+
+            if (!success)
+            {
+                _logger.LogWarning("Cache update failed for site: {Site} (key: {Key})", site, cacheKey);
             }
         }
 
-        private async Task UpdateCacheForSiteAsync(string cacheKey, MasterInfoValidation masterData, string sitePrefixProvider)
+        private void LogResults(int total, int successCount, ConcurrentBag<string> errors)
         {
-            try
+            if (errors.IsEmpty)
             {
-                var slidingExpiration = TimeSpan.FromHours(CacheSlidingExpirationInHours);
-                await _redisService.SetAsync(cacheKey, masterData, slidingExpiration);
-
-                _logger.LogInformation("Successfully updated master data cache for key: {CacheKey}, Site: {Site}",
-                    cacheKey, sitePrefixProvider);
+                _logger.LogInformation("All {Count} sites updated successfully.", total);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Failed to update cache for key: {CacheKey}, Site: {Site}",
-                    cacheKey, sitePrefixProvider);
-                throw;
-            }
-        }
+                _logger.LogWarning("Update completed with errors. Success: {Success}/{Total}, Failed: {Failed}",
+                    successCount, total, errors.Count);
 
-        private async Task<MasterInfoValidation> GetMasterDataAsync(string sitePrefixProvider)
-        {
-            try
-            {
-                var criteria = new MasterInfoValidationCriteria(sitePrefixProvider);
-                var results = await _dynamicRepository.FetchMultipleAsync<
-                    SpecialDomainMapping,
-                    DomainMapping,
-                    LanguageReference,
-                    AffiliateDeal,
-                    LandingPageSetting>(criteria);
-
-                return new MasterInfoValidation
+                foreach (var site in errors)
                 {
-                    SpecialDomainMappings = results.FirstResultSet,
-                    DomainMappings = results.SecondResultSet,
-                    LanguageReferences = results.ThirdResultSet,
-                    AffCommGroups = results.FourthResultSet,
-                    LandingPages = results.FifthResultSet
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                                "Failed to fetch master data from stored procedure for site: {Site}",
-                                sitePrefixProvider);
-                throw;
+                    _logger.LogError("Failed site: {Site}", site);
+                }
             }
         }
     }
