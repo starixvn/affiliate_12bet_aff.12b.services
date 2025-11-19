@@ -41,6 +41,9 @@ namespace Aff12B.Ext.API.Infastructure.Command
         [SpParam(SqlParamName = "_Status")]
         public string Status { get; set; }
 
+        [SpParam(SqlParamName = "_DealVerifyFlags")]
+        public int DealVerifyFlags { get; set; }
+
         public override string GetSettingKey() => "Affiliate_AffiliateInfo_Set";
 
         public override bool IsValid() => true;

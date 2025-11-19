@@ -113,7 +113,8 @@ namespace Aff12B.Ext.API.Site.Controllers
                     LastName = affiliate.LastName ?? string.Empty,
                     ContactNumber = affiliate.ContactNumber ?? string.Empty,
                     Email = affiliate.Email ?? string.Empty,
-                    Status = affiliate.Status ?? string.Empty
+                    Status = affiliate.Status ?? string.Empty,
+                    DealVerifyFlags = affiliate.DealVerifyFlags
                 });
                 return new ResultInfo { IsSuccess = true };
             }
