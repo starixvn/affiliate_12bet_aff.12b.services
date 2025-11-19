@@ -1,11 +1,7 @@
-using Aff12B.CronJobs.Host;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Moq;
 using Xunit;
 
 namespace Aff12B.CronJobs.Host.Tests
@@ -65,8 +61,8 @@ namespace Aff12B.CronJobs.Host.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register controller services
-            services.Should().Contain(s => 
-                s.ServiceType.Name.Contains("Mvc") || 
+            services.Should().Contain(s =>
+                s.ServiceType.Name.Contains("Mvc") ||
                 s.ServiceType.Name.Contains("Controller"),
                 "because controllers should be registered for CronJobs management");
         }
@@ -83,8 +79,8 @@ namespace Aff12B.CronJobs.Host.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register HTTP client services
-            services.Should().Contain(s => 
-                s.ServiceType.Name.Contains("HttpClient") || 
+            services.Should().Contain(s =>
+                s.ServiceType.Name.Contains("HttpClient") ||
                 s.ServiceType == typeof(IHttpClientFactory),
                 "because HTTP clients are needed for external API calls");
         }
@@ -101,7 +97,7 @@ namespace Aff12B.CronJobs.Host.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register memory cache services
-            services.Should().Contain(s => 
+            services.Should().Contain(s =>
                 s.ServiceType.Name.Contains("MemoryCache"),
                 "because memory cache is essential for performance");
         }
@@ -112,10 +108,10 @@ namespace Aff12B.CronJobs.Host.Tests
             // Arrange - Development environment scenario
             var builder = WebApplication.CreateBuilder();
             builder.Environment.EnvironmentName = "Development";
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Should not throw in development environment
@@ -131,10 +127,10 @@ namespace Aff12B.CronJobs.Host.Tests
             // Arrange - Production environment scenario
             var builder = WebApplication.CreateBuilder();
             builder.Environment.EnvironmentName = "Production";
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Should not throw in production environment
@@ -151,7 +147,7 @@ namespace Aff12B.CronJobs.Host.Tests
             var builder = WebApplication.CreateBuilder();
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act
@@ -168,7 +164,7 @@ namespace Aff12B.CronJobs.Host.Tests
             var builder = WebApplication.CreateBuilder();
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Should configure Hangfire without throwing
@@ -205,15 +201,15 @@ namespace Aff12B.CronJobs.Host.Tests
         {
             // Arrange - Multi-environment configuration scenario
             var environments = new[] { "Development", "Staging", "Production" };
-            
+
             foreach (var env in environments)
             {
                 var builder = WebApplication.CreateBuilder();
                 builder.Environment.EnvironmentName = env;
-                
+
                 var startup = new Startup(builder.Configuration);
                 startup.ConfigureServices(builder.Services);
-                
+
                 using var app = builder.Build();
 
                 // Act & Assert - Should handle all environments
@@ -235,9 +231,9 @@ namespace Aff12B.CronJobs.Host.Tests
 
             // Assert - Should register services with appropriate lifetimes
             services.Should().NotBeEmpty("because services should be registered");
-            services.Should().Contain(s => s.Lifetime == ServiceLifetime.Singleton, 
+            services.Should().Contain(s => s.Lifetime == ServiceLifetime.Singleton,
                 "because some services should be singletons for performance");
-            services.Should().Contain(s => s.Lifetime == ServiceLifetime.Scoped, 
+            services.Should().Contain(s => s.Lifetime == ServiceLifetime.Scoped,
                 "because some services should be scoped for request handling");
         }
 
@@ -253,7 +249,7 @@ namespace Aff12B.CronJobs.Host.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register health check services
-            services.Should().Contain(s => 
+            services.Should().Contain(s =>
                 s.ServiceType.Name.Contains("HealthCheck"),
                 "because health checks are critical for CronJobs monitoring");
         }
@@ -270,7 +266,7 @@ namespace Aff12B.CronJobs.Host.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register logging services
-            services.Should().Contain(s => 
+            services.Should().Contain(s =>
                 s.ServiceType.Name.Contains("Logger") || s.ServiceType.Name.Contains("Logging"),
                 "because logging is essential for monitoring and debugging");
         }
@@ -289,13 +285,13 @@ namespace Aff12B.CronJobs.Host.Tests
                 ["Redis:AppName"] = "Aff12B-CronJobs-Prod",
                 ["Redis:KeepAlive"] = "120"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             var services = new ServiceCollection();
 
             // Act - Should handle Redis configuration
             var act = () => startup.ConfigureServices(services);
-            
+
             // Assert - Should configure Redis successfully
             act.Should().NotThrow("because Redis configuration should be handled properly");
         }
@@ -308,7 +304,7 @@ namespace Aff12B.CronJobs.Host.Tests
             var startup = new Startup(builder.Configuration);
 
             // Act - Should integrate all CronJobs components
-            var act = () => 
+            var act = () =>
             {
                 startup.ConfigureServices(builder.Services);
                 using var app = builder.Build();

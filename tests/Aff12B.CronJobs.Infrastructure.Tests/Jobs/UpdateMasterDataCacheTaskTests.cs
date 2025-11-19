@@ -1,8 +1,7 @@
+using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Jobs;
 using Aff12B.CronJobs.Infrastructure.Jobs.Interfaces;
-using Fanex.Caching;
-using Fanex.Data.Repository;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,28 +14,33 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
     /// Unit tests for UpdateMasterDataCacheTask class.
     /// Business-focused scenarios for master data cache management.
     /// Tests constructor validation, interface compliance, and business scenarios.
-    /// Note: Complex cache/repository interactions tested via integration tests due to framework complexity.
     /// </summary>
     public class UpdateMasterDataCacheTaskTests
     {
-        private readonly Mock<ICacheService> _mockCacheService;
-        private readonly Mock<IDynamicRepository> _mockDynamicRepository;
+        private readonly Mock<IMasterDataProviderService> _mockProviderService;
+        private readonly Mock<IDataCacheService> _mockCacheService;
         private readonly Mock<ILogger<UpdateMasterDataCacheTask>> _mockLogger;
         private readonly Mock<IOptions<LicenseeSiteSetting>> _mockOptions;
         private readonly LicenseeSiteSetting _licenseeSiteSetting;
 
         public UpdateMasterDataCacheTaskTests()
         {
-            _mockCacheService = new Mock<ICacheService>();
-            _mockDynamicRepository = new Mock<IDynamicRepository>();
+            _mockProviderService = new Mock<IMasterDataProviderService>();
+            _mockCacheService = new Mock<IDataCacheService>();
             _mockLogger = new Mock<ILogger<UpdateMasterDataCacheTask>>();
             _mockOptions = new Mock<IOptions<LicenseeSiteSetting>>();
-            
+
             _licenseeSiteSetting = new LicenseeSiteSetting
             {
-                SupportedSites = new[] { "CasinoSite", "SportsBetting", "LiveCasino" }
+                SupportedSites = new[] { "CasinoSite", "SportsBetting", "LiveCasino" },
+                LicenseeSiteMapping = new[]
+                {
+                    new LicenseeSiteMapping { SiteName = "CasinoSite", SettingCodePrefix = "CAS" },
+                    new LicenseeSiteMapping { SiteName = "SportsBetting", SettingCodePrefix = "SPT" },
+                    new LicenseeSiteMapping { SiteName = "LiveCasino", SettingCodePrefix = "LIV" }
+                }
             };
-            
+
             _mockOptions.Setup(x => x.Value).Returns(_licenseeSiteSetting);
         }
 
@@ -45,14 +49,29 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Assert - Should create instance successfully
             task.Should().NotBeNull();
-            task.Should().BeAssignableTo<ICacheUpdateTask>();
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>();
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullException_WhenProviderServiceIsNull()
+        {
+            // Arrange & Act
+            var act = () => new UpdateMasterDataCacheTask(
+                null,
+                _mockCacheService.Object,
+                _mockOptions.Object,
+                _mockLogger.Object);
+
+            // Assert - Should throw ArgumentNullException
+            act.Should().Throw<ArgumentNullException>()
+                .WithParameterName("masterDataProviderService");
         }
 
         [Fact]
@@ -60,29 +79,14 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var act = () => new UpdateMasterDataCacheTask(
-                null,
-                _mockDynamicRepository.Object,
-                _mockOptions.Object,
-                _mockLogger.Object);
-
-            // Assert - Should throw ArgumentNullException
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("cacheService");
-        }
-
-        [Fact]
-        public void Constructor_ShouldThrowArgumentNullException_WhenDynamicRepositoryIsNull()
-        {
-            // Arrange & Act
-            var act = () => new UpdateMasterDataCacheTask(
-                _mockCacheService.Object,
+                _mockProviderService.Object,
                 null,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Assert - Should throw ArgumentNullException
             act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("dynamicRepository");
+                .WithParameterName("dataCacheService");
         }
 
         [Fact]
@@ -90,8 +94,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange & Act
             var act = () => new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 null);
 
@@ -101,36 +105,36 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         }
 
         [Fact]
-        public async Task UpdateMasterDataCacheAsync_ShouldSupportBusinessScenario_NoSitesConfigured()
+        public async Task UpdateDataCacheAsync_ShouldSupportBusinessScenario_NoSitesConfigured()
         {
             // Arrange - No supported sites scenario
             _licenseeSiteSetting.SupportedSites = null;
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act - Should not throw when no sites configured
-            var act = async () => await task.UpdateMasterDataCacheAsync();
+            var act = async () => await task.UpdateDataCacheAsync();
 
             // Assert - Should handle gracefully (early return)
             await act.Should().NotThrowAsync("because null sites should be handled gracefully");
         }
 
         [Fact]
-        public async Task UpdateMasterDataCacheAsync_ShouldSupportBusinessScenario_EmptySitesConfiguration()
+        public async Task UpdateDataCacheAsync_ShouldSupportBusinessScenario_EmptySitesConfiguration()
         {
             // Arrange - Empty supported sites scenario
             _licenseeSiteSetting.SupportedSites = new string[0];
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act - Should not throw when sites list is empty
-            var act = async () => await task.UpdateMasterDataCacheAsync();
+            var act = async () => await task.UpdateDataCacheAsync();
 
             // Assert - Should handle gracefully (early return)
             await act.Should().NotThrowAsync("because empty sites should be handled gracefully");
@@ -142,15 +146,15 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Casino master data caching scenario
             _licenseeSiteSetting.SupportedSites = new[] { "PremiumCasino", "LiveCasino", "VIPCasino" };
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act & Assert - Should support casino master data caching
             task.Should().NotBeNull("because casino master data caching is critical for game operations");
-            task.Should().BeAssignableTo<ICacheUpdateTask>("because it implements cache update interface");
-            
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>("because it implements cache update interface");
+
             _licenseeSiteSetting.SupportedSites.Should().AllSatisfy(site =>
                 site.Should().Contain("Casino", "because all sites should be casino-related"));
         }
@@ -161,8 +165,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Sports betting master data scenario
             _licenseeSiteSetting.SupportedSites = new[] { "SportsBettingPro", "LiveSports", "ESportsBetting" };
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
@@ -176,13 +180,13 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - Interface implementation checking
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act & Assert - Should implement ICacheUpdateTask interface
-            task.Should().BeAssignableTo<ICacheUpdateTask>();
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>();
         }
 
         [Fact]
@@ -191,8 +195,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Multi-tenant caching scenario
             _licenseeSiteSetting.SupportedSites = new[] { "TenantA", "TenantB", "TenantC", "TenantD" };
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
@@ -206,31 +210,31 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - 24-hour cache expiration scenario
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act & Assert - Should support 24-hour cache expiration strategy
             task.Should().NotBeNull("because master data requires daily refresh for accuracy");
-            task.Should().BeAssignableTo<ICacheUpdateTask>("because it manages cache lifecycle");
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>("because it manages cache lifecycle");
         }
 
         [Fact]
         public void UpdateMasterDataCacheTask_ShouldSupportDependencyInjection()
         {
             // Arrange - Dependency injection scenario
+            var providerService = _mockProviderService.Object;
             var cacheService = _mockCacheService.Object;
-            var dynamicRepository = _mockDynamicRepository.Object;
             var options = _mockOptions.Object;
             var logger = _mockLogger.Object;
 
             // Act
-            var task = new UpdateMasterDataCacheTask(cacheService, dynamicRepository, options, logger);
+            var task = new UpdateMasterDataCacheTask(providerService, cacheService, options, logger);
 
             // Assert - Should accept dependencies through constructor
             task.Should().NotBeNull();
-            task.Should().BeAssignableTo<ICacheUpdateTask>();
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>();
         }
 
         [Fact]
@@ -239,8 +243,8 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
             // Arrange - Performance optimization scenario
             _licenseeSiteSetting.SupportedSites = new[] { "HighTrafficSite" };
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
@@ -254,14 +258,14 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs
         {
             // Arrange - Data consistency scenario
             var task = new UpdateMasterDataCacheTask(
+                _mockProviderService.Object,
                 _mockCacheService.Object,
-                _mockDynamicRepository.Object,
                 _mockOptions.Object,
                 _mockLogger.Object);
 
             // Act & Assert - Should support data consistency through centralized cache management
             task.Should().NotBeNull("because data consistency requires centralized cache updates");
-            task.Should().BeAssignableTo<ICacheUpdateTask>("because it ensures consistent cache state");
+            task.Should().BeAssignableTo<IUpdateDataCacheTask>("because it ensures consistent cache state");
         }
     }
 }

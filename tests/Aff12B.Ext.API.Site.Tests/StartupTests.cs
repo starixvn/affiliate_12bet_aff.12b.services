@@ -1,10 +1,7 @@
-using Aff12B.Ext.API.Site;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Aff12B.Ext.API.Site.Tests
@@ -65,8 +62,8 @@ namespace Aff12B.Ext.API.Site.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should register Swagger services
-            services.Should().Contain(s => 
-                s.ServiceType.Name.Contains("Swagger") || 
+            services.Should().Contain(s =>
+                s.ServiceType.Name.Contains("Swagger") ||
                 s.ServiceType.Name.Contains("OpenApi"),
                 "because API documentation is essential for external integrations");
         }
@@ -82,7 +79,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Test.API",
                 ["TokenManagement:Audience"] = "Aff12B.Test.Client"
             });
-            
+
             var services = new ServiceCollection();
             var startup = new Startup(builder.Configuration);
 
@@ -105,10 +102,10 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Dev.API",
                 ["TokenManagement:Audience"] = "Aff12B.Dev.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Should not throw in development environment
@@ -131,10 +128,10 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Audience"] = "Aff12B.Production.Client",
                 ["Environment"] = "Production"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Should not throw in production environment
@@ -155,10 +152,10 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.API",
                 ["TokenManagement:Audience"] = "Aff12B.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act
@@ -192,7 +189,7 @@ namespace Aff12B.Ext.API.Site.Tests
             startup.ConfigureServices(services);
 
             // Assert - Should support API versioning through Swagger
-            services.Should().Contain(s => 
+            services.Should().Contain(s =>
                 s.ServiceType.Name.Contains("Swagger"),
                 "because API versioning should be supported through service registration");
         }
@@ -201,13 +198,13 @@ namespace Aff12B.Ext.API.Site.Tests
         public void Startup_ShouldSupportBusinessScenario_MultiEnvironmentTokenConfiguration()
         {
             // Arrange - Multi-environment token configuration scenario
-            var environments = new[] 
+            var environments = new[]
             {
                 ("Development", "dev-secret-key-for-jwt-validation-2024-minimum-length"),
                 ("Staging", "staging-secret-key-for-jwt-validation-2024-minimum-length"),
                 ("Production", "production-secret-key-very-secure-for-jwt-validation-2024-minimum-length")
             };
-            
+
             foreach (var (env, secret) in environments)
             {
                 var builder = WebApplication.CreateBuilder();
@@ -217,7 +214,7 @@ namespace Aff12B.Ext.API.Site.Tests
                     ["TokenManagement:Issuer"] = $"Aff12B.{env}.API",
                     ["TokenManagement:Audience"] = $"Aff12B.{env}.Client"
                 });
-                
+
                 // Act & Assert - Should handle all environment configurations
                 var act = () => new Startup(builder.Configuration);
                 act.Should().NotThrow($"because {env} environment token configuration should be supported");
@@ -235,11 +232,11 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Complete.API",
                 ["TokenManagement:Audience"] = "Aff12B.Complete.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
 
             // Act - Should integrate all API components
-            var act = () => 
+            var act = () =>
             {
                 startup.ConfigureServices(builder.Services);
                 using var app = builder.Build();
@@ -263,7 +260,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:AccessExpiration"] = "60",
                 ["TokenManagement:RefreshExpiration"] = "1440"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             var services = new ServiceCollection();
 
@@ -285,10 +282,10 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Security.API",
                 ["TokenManagement:Audience"] = "Aff12B.Security.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act

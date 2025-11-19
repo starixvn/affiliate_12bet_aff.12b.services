@@ -1,4 +1,3 @@
-using Aff12B.Common.DataDomain.Models;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
@@ -27,7 +26,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
             _mockRepository = new Mock<IThirdPartyImportRepository>();
             _mockLicenseeApi = new Mock<ILicenseeApi>();
             _mockTrackerService = new Mock<ITrackerService>();
-            
+
             _fetchServiceSetting = new FetchServiceSetting
             {
                 AdjustmentValue = 15,
@@ -170,7 +169,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
 
             // Act & Assert - Should support financial reporting requirements
             task.Should().NotBeNull("because financial reporting requires comprehensive deposit data");
-            _fetchServiceSetting.MaxTimeRange.Should().BeGreaterThan(360, 
+            _fetchServiceSetting.MaxTimeRange.Should().BeGreaterThan(360,
                 "because financial reporting needs longer time ranges for comprehensive data");
         }
 
@@ -204,7 +203,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
 
             // Act & Assert - Should support fraud detection requirements
             task.Should().NotBeNull("because fraud detection requires frequent deposit monitoring");
-            _fetchServiceSetting.PullInfoCron.Should().Contain("*/5", 
+            _fetchServiceSetting.PullInfoCron.Should().Contain("*/5",
                 "because fraud detection requires frequent monitoring");
         }
 
@@ -236,9 +235,9 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
 
             // Act & Assert - Should support multi-currency deposit processing
             task.Should().NotBeNull("because multi-currency support is essential for global operations");
-            _fetchServiceSetting.SupportedPrefix.Should().HaveCount(5, 
+            _fetchServiceSetting.SupportedPrefix.Should().HaveCount(5,
                 "because multiple currencies should be supported");
-            _fetchServiceSetting.SupportedPrefix.Should().Contain("BTC_", 
+            _fetchServiceSetting.SupportedPrefix.Should().Contain("BTC_",
                 "because cryptocurrency deposits should be supported");
         }
 
@@ -256,7 +255,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
 
             // Act & Assert - Should support VIP customer deposit processing
             task.Should().NotBeNull("because VIP customers require priority deposit processing");
-            _fetchServiceSetting.MaxTimeRange.Should().BeLessOrEqualTo(120, 
+            _fetchServiceSetting.MaxTimeRange.Should().BeLessOrEqualTo(120,
                 "because VIP processing should be frequent");
             _fetchServiceSetting.AdjustmentValue.Should().BeLessOrEqualTo(5,
                 "because VIP processing requires high accuracy");
@@ -324,7 +323,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.Deposit
 
             // Act & Assert - Should support recurring deposit processing
             task.Should().NotBeNull("because recurring deposits need regular processing");
-            _fetchServiceSetting.PullInfoCron.Should().Contain("*/6", 
+            _fetchServiceSetting.PullInfoCron.Should().Contain("*/6",
                 "because recurring processing should be scheduled appropriately");
         }
     }

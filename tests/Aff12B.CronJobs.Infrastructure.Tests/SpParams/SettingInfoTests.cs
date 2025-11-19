@@ -176,7 +176,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.SpParams
 
             // Act & Assert - Should support multiple different settings
             var settings = new[] { dbSetting, apiSetting, cacheSetting };
-            
+
             settings.Should().AllSatisfy(setting =>
             {
                 setting.Should().NotBeNull();

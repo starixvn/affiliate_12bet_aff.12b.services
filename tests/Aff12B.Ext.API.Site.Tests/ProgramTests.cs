@@ -1,9 +1,7 @@
-using Aff12B.Ext.API.Site;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
@@ -83,7 +81,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.ServiceReg.API",
                 ["TokenManagement:Audience"] = "Aff12B.ServiceReg.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
 
             // Act - Test service registration pattern from Program.cs
@@ -119,7 +117,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Build.API",
                 ["TokenManagement:Audience"] = "Aff12B.Build.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
 
@@ -141,7 +139,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Middleware.API",
                 ["TokenManagement:Audience"] = "Aff12B.Middleware.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
 
@@ -233,7 +231,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Bootstrap.API",
                 ["TokenManagement:Audience"] = "Aff12B.Bootstrap.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
 
             // Act - Test complete bootstrap pattern from Program.cs
@@ -279,10 +277,10 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Swagger.API",
                 ["TokenManagement:Audience"] = "Aff12B.Swagger.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
             startup.ConfigureServices(builder.Services);
-            
+
             using var app = builder.Build();
 
             // Act - Test Swagger documentation support
@@ -303,7 +301,7 @@ namespace Aff12B.Ext.API.Site.Tests
                 ["TokenManagement:Issuer"] = "Aff12B.Security.API",
                 ["TokenManagement:Audience"] = "Aff12B.Security.Client"
             });
-            
+
             var startup = new Startup(builder.Configuration);
 
             // Act - Test security configuration pattern
@@ -318,7 +316,7 @@ namespace Aff12B.Ext.API.Site.Tests
         {
             // Arrange - API multi-environment configuration scenario
             var environments = new[] { "Development", "Staging", "Production", "LOCAL", "PRO" };
-            
+
             foreach (var env in environments)
             {
                 var builder = WebApplication.CreateBuilder();

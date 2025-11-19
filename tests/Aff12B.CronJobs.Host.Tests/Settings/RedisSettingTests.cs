@@ -219,10 +219,10 @@ namespace Aff12B.CronJobs.Host.Tests.Settings
             // Act & Assert - Should support high availability configuration
             primaryRedisSetting.Server.Should().Contain("primary");
             secondaryRedisSetting.Server.Should().Contain("secondary");
-            
-            primaryRedisSetting.KeepAlive.Should().Be(secondaryRedisSetting.KeepAlive, 
+
+            primaryRedisSetting.KeepAlive.Should().Be(secondaryRedisSetting.KeepAlive,
                 "because HA setups should have consistent keep-alive settings");
-            
+
             primaryRedisSetting.Database.Should().Be(secondaryRedisSetting.Database,
                 "because HA setups should use same database");
         }

@@ -7,6 +7,7 @@ using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
 using Aff12B.CronJobs.Infrastructure.Constants;
 using Aff12B.CronJobs.Infrastructure.Handlers;
+using Aff12B.CronJobs.Infrastructure.Helpers;
 using Aff12B.CronJobs.Infrastructure.Jobs;
 using Aff12B.CronJobs.Infrastructure.Jobs.AffCustomer;
 using Aff12B.CronJobs.Infrastructure.Jobs.Bonus;
@@ -17,13 +18,11 @@ using Aff12B.CronJobs.Infrastructure.Jobs.Product9W;
 using Aff12B.CronJobs.Infrastructure.Jobs.RetryJob;
 using Aff12B.CronJobs.Infrastructure.Repository;
 using Aff12B.CronJobs.Infrastructure.Services;
-using Fanex.Caching;
-using Fanex.Caching.Redis;
 using Fanex.Data.Repository;
 using Hangfire;
 using ONEbook.UM.DependencyInjection;
 using Refit;
-
+using StackExchange.Redis;
 using System.Linq.Expressions;
 using System.Net;
 using static Aff12B.CronJobs.Infrastructure.Constants.ServiceConfigName;
@@ -88,10 +87,13 @@ namespace Aff12B.CronJobs.Host.Extensions
         {
             services.AddScoped<IDataTrackerService, DataTrackerService>();
             services.AddScoped<ITrackerService, TimeTrackerService>();
+            services.AddScoped<IMasterDataProviderService, MasterDataProviderService>();
+            services.AddScoped<IDataCacheService, DataCacheService>();
 
             // Add Fanex Service
-            services.AddSingleton<ICacheService, CacheService>();
-            services.AddRedisCache(configuration.GetSection("fanex.caching.redis"));
+            RedisConnectionHelper.Initialize(configuration);
+            services.AddSingleton<IConnectionMultiplexer>(sp => RedisConnectionHelper.Connection);
+            services.AddSingleton<IRedisService, RedisService>();
             services.AddOneBookUmForService(configuration);
 
             return services;
@@ -362,7 +364,7 @@ namespace Aff12B.CronJobs.Host.Extensions
         private static void RegisterUpdateMasterDataTask(Dictionary<string, FetchServiceSetting> listJobDic)
         {
             // Register the cache update task - runs every 10 minutes
-            RegisterTask<UpdateMasterDataCacheTask>($"{typeof(UpdateMasterDataCacheTask).Name}", listJobDic[UPDATE_MASTER_DATA_CACHE_SETTING].PullInfoCron, job => job.UpdateMasterDataCacheAsync());
+            RegisterTask<UpdateMasterDataCacheTask>($"{typeof(UpdateMasterDataCacheTask).Name}", listJobDic[UPDATE_MASTER_DATA_CACHE_SETTING].PullInfoCron, job => job.UpdateDataCacheAsync());
         }
 
         private static void RegisterTask<T>(string serviceId, string cronExpression, Expression<Func<T, Task>> methodCall)

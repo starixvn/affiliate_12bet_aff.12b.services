@@ -43,7 +43,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Health monitoring scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act - Should not throw when called
             var act = () => mockApplicationBuilder.Object.UsePing();
 
@@ -57,7 +57,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Load balancer integration scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -71,7 +71,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Kubernetes readiness probe scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -85,7 +85,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Monitoring system integration scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -100,7 +100,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
             // Arrange
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
             RequestDelegate capturedMiddleware = null;
-            
+
             mockApplicationBuilder.Setup(x => x.Use(It.IsAny<Func<RequestDelegate, RequestDelegate>>()))
                 .Callback<Func<RequestDelegate, RequestDelegate>>(middleware =>
                 {
@@ -121,7 +121,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Service mesh integration scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -135,7 +135,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - API Gateway integration scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -149,7 +149,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - Container orchestration scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -178,7 +178,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - High availability setup scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
@@ -192,7 +192,7 @@ namespace Aff12B.CronJobs.Host.Tests.Extensions
         {
             // Arrange - DevOps monitoring scenario
             var mockApplicationBuilder = new Mock<IApplicationBuilder>();
-            
+
             // Act
             mockApplicationBuilder.Object.UsePing();
 
