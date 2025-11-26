@@ -17,18 +17,18 @@ namespace Aff12B.Common.DataDomain.Tests.Params
 
             // Assert
             param.Should().NotBeNull();
-            param.CustId.Should().Be(0);
             param.SiteId.Should().Be(0);
-            param.AffiliateId.Should().Be(0);
-            param.AffiliateName.Should().BeNull();
-            param.ParentAffiliate.Should().BeNull();
-            param.AffiliateCode.Should().BeNull();
+            param.AffId.Should().Be(0);
+            param.ParentAff.Should().Be(string.Empty); // Default value
             param.UserName.Should().BeNull();
-            param.FirstName.Should().BeNull();
-            param.LastName.Should().BeNull();
-            param.ContactNumber.Should().BeNull();
-            param.Email.Should().BeNull();
-            param.Status.Should().BeNull();
+            param.Player_CustId.Should().Be(0);
+            param.CustId.Should().Be(-1);
+            param.Player_Username.Should().Be(string.Empty); // Default value
+            param.FirstName.Should().Be(string.Empty); // Default value
+            param.LastName.Should().Be(string.Empty); // Default value
+            param.Phone.Should().Be(string.Empty); // Default value
+            param.Email.Should().Be(string.Empty); // Default value
+            param.Status.Should().Be(string.Empty); // Default value
         }
 
         [Fact]
@@ -38,57 +38,57 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.CustId = 12345;
+            param.Player_CustId = 12345;
             param.SiteId = 1;
-            param.AffiliateId = 100;
-            param.AffiliateName = "Test Affiliate";
-            param.ParentAffiliate = "Parent Affiliate";
-            param.AffiliateCode = "AFF001";
-            param.UserName = "testaffiliate";
+            param.AffId = 100;
+            param.UserName = "Test Affiliate";
+            param.ParentAff = "Parent Affiliate";
+            param.AffCode = "AFF001";
+            param.Player_Username = "testaffiliate";
             param.FirstName = "Test";
             param.LastName = "Affiliate";
-            param.ContactNumber = "+1234567890";
+            param.Phone = "+1234567890";
             param.Email = "test@affiliate.com";
             param.Status = "Active";
 
             // Assert
             param.CustId.Should().Be(12345);
             param.SiteId.Should().Be(1);
-            param.AffiliateId.Should().Be(100);
-            param.AffiliateName.Should().Be("Test Affiliate");
-            param.ParentAffiliate.Should().Be("Parent Affiliate");
-            param.AffiliateCode.Should().Be("AFF001");
-            param.UserName.Should().Be("testaffiliate");
+            param.AffId.Should().Be(100);
+            param.UserName.Should().Be("Test Affiliate");
+            param.ParentAff.Should().Be("Parent Affiliate");
+            param.AffCode.Should().Be("AFF001");
+            param.Player_Username.Should().Be("testaffiliate");
             param.FirstName.Should().Be("Test");
             param.LastName.Should().Be("Affiliate");
-            param.ContactNumber.Should().Be("+1234567890");
+            param.Phone.Should().Be("+1234567890");
             param.Email.Should().Be("test@affiliate.com");
             param.Status.Should().Be("Active");
         }
 
         [Theory]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(12345)]
-        [InlineData(int.MaxValue)]
-        public void IntegerProperties_ShouldHandleValues(int value)
+        [InlineData(int.MinValue, -1)]
+        [InlineData(-1, -1)]
+        [InlineData(0, -1)]
+        [InlineData(1, 1)]
+        [InlineData(12345, 12345)]
+        [InlineData(int.MaxValue, int.MaxValue)]
+        public void IntegerProperties_ShouldHandleValues(int value, int expectedCustId)
         {
             // Arrange
             var param = new AffiliateParam();
 
             // Act & Assert - CustId
-            param.CustId = value;
-            param.CustId.Should().Be(value);
+            param.Player_CustId = value;
+            param.CustId.Should().Be(expectedCustId);
 
             // Act & Assert - SiteId
             param.SiteId = value;
             param.SiteId.Should().Be(value);
 
             // Act & Assert - AffiliateId
-            param.AffiliateId = value;
-            param.AffiliateId.Should().Be(value);
+            param.AffId = value;
+            param.AffId.Should().Be(value);
         }
 
         [Theory]
@@ -102,10 +102,10 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.AffiliateName = affiliateName;
+            param.UserName = affiliateName;
 
             // Assert
-            param.AffiliateName.Should().Be(affiliateName);
+            param.UserName.Should().Be(affiliateName);
         }
 
         [Theory]
@@ -119,10 +119,10 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.ParentAffiliate = parentAffiliate;
+            param.ParentAff = parentAffiliate;
 
             // Assert
-            param.ParentAffiliate.Should().Be(parentAffiliate);
+            param.ParentAff.Should().Be(parentAffiliate);
         }
 
         [Theory]
@@ -137,10 +137,10 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.AffiliateCode = affiliateCode;
+            param.AffCode = affiliateCode;
 
             // Assert
-            param.AffiliateCode.Should().Be(affiliateCode);
+            param.AffCode.Should().Be(affiliateCode);
         }
 
         [Theory]
@@ -207,10 +207,10 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.ContactNumber = contactNumber;
+            param.Phone = contactNumber;
 
             // Assert
-            param.ContactNumber.Should().Be(contactNumber);
+            param.Phone.Should().Be(contactNumber);
         }
 
         [Theory]
@@ -256,16 +256,16 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             // Arrange & Act
             var param = new AffiliateParam
             {
-                CustId = 12345,
+                Player_CustId = 12345,
                 SiteId = 1,
-                AffiliateId = 100,
-                AffiliateName = "Premium Affiliate",
-                ParentAffiliate = "Master Affiliate",
-                AffiliateCode = "PREM001",
-                UserName = "premiumaff",
+                AffId = 100,
+                UserName = "Premium Affiliate",
+                ParentAff = "Master Affiliate",
+                AffCode = "PREM001",
+                Player_Username = "premiumaff",
                 FirstName = "Premium",
                 LastName = "Affiliate",
-                ContactNumber = "+1-555-123-4567",
+                Phone = "+1-555-123-4567",
                 Email = "premium@affiliate.com",
                 Status = "Active"
             };
@@ -273,14 +273,14 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             // Assert
             param.CustId.Should().Be(12345);
             param.SiteId.Should().Be(1);
-            param.AffiliateId.Should().Be(100);
-            param.AffiliateName.Should().Be("Premium Affiliate");
-            param.ParentAffiliate.Should().Be("Master Affiliate");
-            param.AffiliateCode.Should().Be("PREM001");
-            param.UserName.Should().Be("premiumaff");
+            param.AffId.Should().Be(100);
+            param.UserName.Should().Be("Premium Affiliate");
+            param.ParentAff.Should().Be("Master Affiliate");
+            param.AffCode.Should().Be("PREM001");
+            param.Player_Username.Should().Be("premiumaff");
             param.FirstName.Should().Be("Premium");
             param.LastName.Should().Be("Affiliate");
-            param.ContactNumber.Should().Be("+1-555-123-4567");
+            param.Phone.Should().Be("+1-555-123-4567");
             param.Email.Should().Be("premium@affiliate.com");
             param.Status.Should().Be("Active");
         }
@@ -291,24 +291,24 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             // Arrange & Act
             var param = new AffiliateParam
             {
-                CustId = 1,
+                Player_CustId = 1,
                 SiteId = 1,
-                AffiliateId = 1
+                AffId = 1
             };
 
             // Assert
-            param.CustId.Should().Be(1);
             param.SiteId.Should().Be(1);
-            param.AffiliateId.Should().Be(1);
-            param.AffiliateName.Should().BeNull();
-            param.ParentAffiliate.Should().BeNull();
-            param.AffiliateCode.Should().BeNull();
+            param.AffId.Should().Be(1);
+            param.ParentAff.Should().Be(string.Empty); // Default value
             param.UserName.Should().BeNull();
-            param.FirstName.Should().BeNull();
-            param.LastName.Should().BeNull();
-            param.ContactNumber.Should().BeNull();
-            param.Email.Should().BeNull();
-            param.Status.Should().BeNull();
+            param.Player_CustId.Should().Be(1);
+            param.CustId.Should().Be(1);
+            param.Player_Username.Should().Be(string.Empty); // Default value
+            param.FirstName.Should().Be(string.Empty); // Default value
+            param.LastName.Should().Be(string.Empty); // Default value
+            param.Phone.Should().Be(string.Empty); // Default value
+            param.Email.Should().Be(string.Empty); // Default value
+            param.Status.Should().Be(string.Empty); // Default value
         }
 
         [Fact]
@@ -319,24 +319,24 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
             // Act
-            param.AffiliateName = specialChars;
-            param.ParentAffiliate = specialChars;
-            param.AffiliateCode = specialChars;
             param.UserName = specialChars;
+            param.ParentAff = specialChars;
+            param.AffCode = specialChars;
+            param.Player_Username = specialChars;
             param.FirstName = specialChars;
             param.LastName = specialChars;
-            param.ContactNumber = specialChars;
+            param.Phone = specialChars;
             param.Email = specialChars;
             param.Status = specialChars;
 
             // Assert
-            param.AffiliateName.Should().Be(specialChars);
-            param.ParentAffiliate.Should().Be(specialChars);
-            param.AffiliateCode.Should().Be(specialChars);
             param.UserName.Should().Be(specialChars);
+            param.ParentAff.Should().Be(specialChars);
+            param.AffCode.Should().Be(specialChars);
+            param.Player_Username.Should().Be(specialChars);
             param.FirstName.Should().Be(specialChars);
             param.LastName.Should().Be(specialChars);
-            param.ContactNumber.Should().Be(specialChars);
+            param.Phone.Should().Be(specialChars);
             param.Email.Should().Be(specialChars);
             param.Status.Should().Be(specialChars);
         }
@@ -348,24 +348,24 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var param = new AffiliateParam();
 
             // Act
-            param.AffiliateName = "";
-            param.ParentAffiliate = "";
-            param.AffiliateCode = "";
             param.UserName = "";
+            param.ParentAff = "";
+            param.AffCode = "";
+            param.Player_Username = "";
             param.FirstName = "";
             param.LastName = "";
-            param.ContactNumber = "";
+            param.Phone = "";
             param.Email = "";
             param.Status = "";
 
             // Assert
-            param.AffiliateName.Should().Be("");
-            param.ParentAffiliate.Should().Be("");
-            param.AffiliateCode.Should().Be("");
             param.UserName.Should().Be("");
+            param.ParentAff.Should().Be("");
+            param.AffCode.Should().Be("");
+            param.Player_Username.Should().Be("");
             param.FirstName.Should().Be("");
             param.LastName.Should().Be("");
-            param.ContactNumber.Should().Be("");
+            param.Phone.Should().Be("");
             param.Email.Should().Be("");
             param.Status.Should().Be("");
         }
@@ -378,24 +378,24 @@ namespace Aff12B.Common.DataDomain.Tests.Params
             var whitespace = "   ";
 
             // Act
-            param.AffiliateName = whitespace;
-            param.ParentAffiliate = whitespace;
-            param.AffiliateCode = whitespace;
             param.UserName = whitespace;
+            param.ParentAff = whitespace;
+            param.AffCode = whitespace;
+            param.Player_Username = whitespace;
             param.FirstName = whitespace;
             param.LastName = whitespace;
-            param.ContactNumber = whitespace;
+            param.Phone = whitespace;
             param.Email = whitespace;
             param.Status = whitespace;
 
             // Assert
-            param.AffiliateName.Should().Be(whitespace);
-            param.ParentAffiliate.Should().Be(whitespace);
-            param.AffiliateCode.Should().Be(whitespace);
             param.UserName.Should().Be(whitespace);
+            param.ParentAff.Should().Be(whitespace);
+            param.AffCode.Should().Be(whitespace);
+            param.Player_Username.Should().Be(whitespace);
             param.FirstName.Should().Be(whitespace);
             param.LastName.Should().Be(whitespace);
-            param.ContactNumber.Should().Be(whitespace);
+            param.Phone.Should().Be(whitespace);
             param.Email.Should().Be(whitespace);
             param.Status.Should().Be(whitespace);
         }

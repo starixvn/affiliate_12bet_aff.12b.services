@@ -3,7 +3,7 @@
         <Setting Key="12B_Task_Aff_MemberInfo_Import" SpName="Task_Aff_MemberInfo_Import" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>
         <Setting Key="12B_Task_Aff_GetSetting" SpName ="Task_Aff_GetSetting" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
         <Setting Key="12B_Task_Aff_MemberInfo_ImportedTime" SpName="Task_Aff_MemberInfo_ImportedTime" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
-        <Setting Key="12B_Aff_API_AffiliateDetailInfo_Sel" SpName="Aff_API_AffiliateDetailInfo_Sel" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
+        <Setting Key="12B_Aff_API_AffiliateDetailInfo_Sel" SpName="Aff_API_AffiliateDetailInfo_Sel_xtest" DbName="DBAFF12B.Affiliate_12B.wsv_afinet" />
     </Function>
     <Function Name="Affiliate_12B_MediaLinkMasterDataValidationCache">
 	    <Setting Key="12B_Aff_ClickStatistics_BulkCache" SpName="Aff_ClickStatistics_BulkCache" DbName="DBAFF12B.Affiliate_12B.wsv_afinet"/>

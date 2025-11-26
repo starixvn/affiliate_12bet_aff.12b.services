@@ -1,5 +1,4 @@
-﻿using Aff12B.Common.DataDomain.Params;
-using Aff12B.CronJobs.Core.Domain.DTOs;
+﻿using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
@@ -18,11 +17,8 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
     public class InitialInsertAffInfoDataTask : IRetryDataTask
     {
         private const int PAGE_INDEX_DEFAULT = 1;
-        private const int PAGE_SIZE_DEFAULT = 100;
-        private readonly Dictionary<string, int> SITE_IDs = new Dictionary<string, int>
-        {
-            { "12B", 101 }
-        };
+        private const int PAGE_SIZE_DEFAULT = 1000;
+        private const int AFF_MARKETING_CATEGORY_ID = 2;
 
         private readonly IDataTrackerService _trackerService;
         private readonly IAffInfoRepository _affInfoRepository;
@@ -61,7 +57,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 return;
             }
 
-            _logger.LogWarning($"Start importing Affiliate Info to 12B - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Start importing Aff Infos to DB - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
 
             foreach (var site in SupportedSites)
             {
@@ -71,7 +67,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                 await ImportDataByBatchAsync(affInfos, sitePrefixProvider);
             }
 
-            _logger.LogWarning($"Complete importing Affiliate Info to 12B - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
+            _logger.LogWarning($"Complete importing Aff Infos to DB - {DateTimeOffset.Now.ToString(Format.DateTimeFormat)}");
         }
 
         private async Task ImportDataByBatchAsync(IEnumerable<AffInfo> data, string sitePrefixProvider)
@@ -81,11 +77,16 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 
             while (importData != null && importData.Any())
             {
-                var prefixProviders = FetchServiceSetting.SupportedPrefix;
+                var validAffs = importData.Where(a => !(string.IsNullOrEmpty(a.AffCode) || (a.AffCategoryId != AFF_MARKETING_CATEGORY_ID && a.Player_CustId == 0)));
 
-                foreach (var prefixProvider in prefixProviders)
+                if (validAffs.Any())
                 {
-                    await ImportDataToMultipleRepoAsync(importData, prefixProvider, sitePrefixProvider);
+                    var prefixProviders = FetchServiceSetting.SupportedPrefix;
+
+                    foreach (var prefixProvider in prefixProviders)
+                    {
+                        await InsertAffInfosAsync(validAffs, prefixProvider, sitePrefixProvider);
+                    }
                 }
 
                 if (importData.Count() == PAGE_SIZE_DEFAULT)
@@ -102,47 +103,20 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 
         private async Task<IEnumerable<AffInfo>> GetDataAsync(string sitePrefixProvider, int pageIndex = PAGE_INDEX_DEFAULT)
         {
-            return await _affInfoRepository.GetAffInfoListAsync(new AffInfoCriteria(sitePrefixProvider)
+            return await _affInfoRepository.GetAffInfosAsync(new GetAffInfosCriteria(sitePrefixProvider)
             {
                 PageIndex = pageIndex,
                 PageSize = PAGE_SIZE_DEFAULT,
             });
         }
 
-        protected async Task ImportDataToMultipleRepoAsync(IEnumerable<AffInfo> data, string prefixProvider, string sitePrefixProvider)
+        private async Task InsertAffInfosAsync(IEnumerable<AffInfo> validAffInfos, string prefixProvider, string sitePrefixProvider)
         {
-            if (!data.Any())
-            {
-                return;
-            }
-
-            var importTasks = data.Where(d => d.Player_CustId != 0).Select(g => InsertAffiliateInfoAsync(g, prefixProvider, sitePrefixProvider));
-
-            await Task.WhenAll(importTasks);
-        }
-
-        private async Task InsertAffiliateInfoAsync(AffInfo affInfo, string prefixProvider, string sitePrefixProvider)
-        {
-            var affiliateParam = new AffiliateParam
-            {
-                CustId = affInfo.Player_CustId,
-                SiteId = SITE_IDs[sitePrefixProvider],
-                AffiliateId = affInfo.AffId,
-                AffiliateName = affInfo.UserName,
-                ParentAffiliate = affInfo.ParentAff,
-                AffiliateCode = affInfo.AffCode,
-                UserName = affInfo.Player_Username,
-                FirstName = affInfo.FirstName,
-                LastName = affInfo.LastName,
-                ContactNumber = affInfo.Phone,
-                Email = affInfo.Email,
-                Status = affInfo.Status,
-            };
-
+            var affInfosJson = JsonConvert.SerializeObject(validAffInfos);
             var command = new InsertDataTrackerCommand(prefixProvider)
             {
-                PushDataInfo = JsonConvert.SerializeObject(affiliateParam),
-                PushDataType = DataTrackerType.InsertAffiliate,
+                PushDataInfo = affInfosJson,
+                PushDataType = DataTrackerType.InsertAffInfos,
             };
 
             await _trackerService.InsertDataTrackerAsync(command);
@@ -157,7 +131,7 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             {
                 if (command.ErrCode == 0)
                 {
-                    var result = await _liceseeApi.InsertAffiliateInfo(affiliateParam);
+                    var result = await _liceseeApi.InsertAffInfos(validAffInfos);
 
                     if (result.IsSuccess)
                     {
@@ -165,13 +139,13 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
                     }
                     else
                     {
-                        _logger.LogError($"Insert affiliate to {sitePrefixProvider} DB fail - {result.ErrMsg}");
+                        _logger.LogError($"Insert aff infos to {sitePrefixProvider} DB fail - {result.ErrMsg}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Insert affiliate to {sitePrefixProvider} DB throw exception - {ex}");
+                _logger.LogError($"Insert aff infos to {sitePrefixProvider} DB throw exception - {ex}");
 
                 await _trackerService.UpdateTrackerStatusAsync(item, DataTrackerStatus.Failure);
             }

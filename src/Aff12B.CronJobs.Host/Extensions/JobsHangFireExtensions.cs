@@ -280,8 +280,8 @@ namespace Aff12B.CronJobs.Host.Extensions
 
         private static void AddAffiliateTasks(IServiceCollection services, Dictionary<string, IConfigurationSection> listJobDic)
         {
-            // ReInsertAffiliateInfoDataTask
-            services.AddScoped<ReInsertAffiliateInfoDataTask>()
+            // ReInsertAffInfosDataTask
+            services.AddScoped<ReInsertAffInfosDataTask>()
                 .Configure<FetchServiceSetting>(
                     ServiceConfigName.INSERT_AFFILIATE_SETTING,
                     listJobDic[ServiceConfigName.INSERT_AFFILIATE_SETTING]);
@@ -356,7 +356,7 @@ namespace Aff12B.CronJobs.Host.Extensions
 
             if (appSetting.IsApiDataModifiable)
             {
-                RegisterTask<ReInsertAffiliateInfoDataTask>($"{typeof(ReInsertAffiliateInfoDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
+                RegisterTask<ReInsertAffInfosDataTask>($"{typeof(ReInsertAffInfosDataTask).Name}", listJobDic[INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
                 RegisterTask<InitialInsertAffInfoDataTask>(typeof(InitialInsertAffInfoDataTask).Name, listJobDic[INITIAL_INSERT_AFFILIATE_SETTING].PullInfoCron, job => job.HandleAsync());
             }
         }

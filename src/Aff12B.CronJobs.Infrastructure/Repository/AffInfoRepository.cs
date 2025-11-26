@@ -8,7 +8,7 @@ namespace Aff12B.CronJobs.Infrastructure.Repository
 {
     public class AffInfoRepository(IDynamicRepository dynamicRepository) : IAffInfoRepository
     {
-        public async Task<IEnumerable<AffInfo>> GetAffInfoListAsync(IPagingInfo settingInfo)
-            => await dynamicRepository.FetchAsync<AffInfo>((AffInfoCriteria)settingInfo);
+        public async Task<IEnumerable<AffInfo>> GetAffInfosAsync(IPagingInfo settingInfo)
+            => await dynamicRepository.FetchAsync<AffInfo>((GetAffInfosCriteria)settingInfo);
     }
 }

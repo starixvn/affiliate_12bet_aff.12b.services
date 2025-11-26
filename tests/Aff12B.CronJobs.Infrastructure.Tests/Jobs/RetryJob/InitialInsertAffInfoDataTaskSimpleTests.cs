@@ -1,4 +1,4 @@
-using Aff12B.Common.DataDomain.Params;
+using Aff12B.Common.DataDomain.Api;
 using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Repository;
 using Aff12B.CronJobs.Core.Services;
@@ -90,16 +90,13 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         }
 
         [Fact]
-        public void SITE_IDs_ShouldContain12B()
+        public void SiteId_Constant_ShouldBe101()
         {
-            // Act - Access the constant through reflection since it's private
-            var siteIdsField = typeof(InitialInsertAffInfoDataTask)
-                .GetField("SITE_IDs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var siteIds = (Dictionary<string, int>)siteIdsField.GetValue(_task);
+            // Act - Verify the constant value through AffInfo.SiteId property
+            var siteId = (new AffInfo()).SiteId;
 
-            // Assert - Should contain 12B mapping
-            siteIds.Should().ContainKey("12B");
-            siteIds["12B"].Should().Be(101);
+            // Assert - Should be 101 for 12B site
+            siteId.Should().Be(101);
         }
 
         [Fact]
@@ -116,7 +113,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
 
             // Assert - Should have expected default values
             pageIndex.Should().Be(1);
-            pageSize.Should().Be(100);
+            pageSize.Should().Be(1000);
         }
 
         [Fact]
@@ -143,7 +140,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             await taskWithEmptySites.HandleAsync();
 
             // Assert - Should not call any repository methods
-            _mockAffInfoRepository.Verify(x => x.GetAffInfoListAsync(It.IsAny<AffInfoCriteria>()), Times.Never);
+            _mockAffInfoRepository.Verify(x => x.GetAffInfosAsync(It.IsAny<GetAffInfosCriteria>()), Times.Never);
         }
 
         [Fact]
@@ -170,7 +167,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             await taskWithNullSites.HandleAsync();
 
             // Assert - Should not call any repository methods
-            _mockAffInfoRepository.Verify(x => x.GetAffInfoListAsync(It.IsAny<AffInfoCriteria>()), Times.Never);
+            _mockAffInfoRepository.Verify(x => x.GetAffInfosAsync(It.IsAny<GetAffInfosCriteria>()), Times.Never);
         }
 
         [Fact]
@@ -184,7 +181,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             };
 
             _mockAffInfoRepository
-                .Setup(x => x.GetAffInfoListAsync(It.IsAny<AffInfoCriteria>()))
+                .Setup(x => x.GetAffInfosAsync(It.IsAny<GetAffInfosCriteria>()))
                 .ReturnsAsync(expectedAffInfos);
 
             // Act - Use reflection to call the private method
@@ -193,29 +190,29 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             var result = await (Task<IEnumerable<AffInfo>>)getDataAsyncMethod.Invoke(_task, new object[] { sitePrefixProvider, 1 });
 
             // Assert - Should call repository with correct criteria
-            _mockAffInfoRepository.Verify(x => x.GetAffInfoListAsync(
-                It.Is<AffInfoCriteria>(c =>
+            _mockAffInfoRepository.Verify(x => x.GetAffInfosAsync(
+                It.Is<GetAffInfosCriteria>(c =>
                     c.PageIndex == 1 &&
-                    c.PageSize == 100)),
+                    c.PageSize == 1000)),
                 Times.Once);
 
             result.Should().BeEquivalentTo(expectedAffInfos);
         }
 
         [Fact]
-        public async Task ImportDataToMultipleRepoAsync_ShouldReturnEarly_WhenDataIsEmpty()
+        public async Task HandleAsync_ShouldNotCallTracker_WhenNoDataReturned()
         {
-            // Arrange
+            // Arrange - Setup repository to return empty data
             var emptyData = new List<AffInfo>();
-            var prefixProvider = "DB1";
-            var sitePrefixProvider = "12B";
 
-            // Act - Use reflection to call the protected method
-            var importDataToMultipleRepoAsyncMethod = typeof(InitialInsertAffInfoDataTask)
-                .GetMethod("ImportDataToMultipleRepoAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            await (Task)importDataToMultipleRepoAsyncMethod.Invoke(_task, new object[] { emptyData, prefixProvider, sitePrefixProvider });
+            _mockAffInfoRepository
+                .Setup(x => x.GetAffInfosAsync(It.IsAny<GetAffInfosCriteria>()))
+                .ReturnsAsync(emptyData);
 
-            // Assert - Should not call any tracker service methods
+            // Act
+            await _task.HandleAsync();
+
+            // Assert - Should not call tracker service when there's no data
             _mockTrackerService.Verify(x => x.InsertDataTrackerAsync(It.IsAny<InsertDataTrackerCommand>()), Times.Never);
         }
 
@@ -252,33 +249,36 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         }
 
         [Fact]
-        public async Task ImportDataToMultipleRepoAsync_ShouldFilterOutZeroCustId()
+        public async Task HandleAsync_ShouldFilterOutInvalidAffInfos()
         {
-            // Arrange - Create data with mixed CustId values
+            // Arrange - Create data with mixed valid/invalid items
             var affInfos = new List<AffInfo>
             {
-                new AffInfo { Player_CustId = 0, AffId = 100, UserName = "ZeroCustId" }, // Should be filtered out
-                new AffInfo { Player_CustId = 1, AffId = 101, UserName = "ValidCustId" }  // Should be processed
+                new AffInfo { Player_CustId = 0, AffId = 100, AffCode = "AFF100", AffCategoryId = 1 }, // Invalid: zero CustId and not marketing category
+                new AffInfo { Player_CustId = 1, AffId = 101, AffCode = "AFF101", AffCategoryId = 1 }, // Valid
+                new AffInfo { Player_CustId = 0, AffId = 102, AffCode = "", AffCategoryId = 2 }, // Invalid: empty AffCode
+                new AffInfo { Player_CustId = 0, AffId = 103, AffCode = "AFF103", AffCategoryId = 2 } // Valid: marketing category
             };
-            var prefixProvider = "DB1";
-            var sitePrefixProvider = "12B";
 
-            // Mock the dependencies to avoid complex internal calls
+            _mockAffInfoRepository
+                .Setup(x => x.GetAffInfosAsync(It.IsAny<GetAffInfosCriteria>()))
+                .ReturnsAsync(affInfos);
+
             _mockTrackerService
                 .Setup(x => x.InsertDataTrackerAsync(It.IsAny<InsertDataTrackerCommand>()))
                 .Returns(Task.CompletedTask);
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
-                .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
+                .ReturnsAsync(new ResultInfo { IsSuccess = true });
 
-            // Act - Use reflection to call the protected method
-            var importDataToMultipleRepoAsyncMethod = typeof(InitialInsertAffInfoDataTask)
-                .GetMethod("ImportDataToMultipleRepoAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            await (Task)importDataToMultipleRepoAsyncMethod.Invoke(_task, new object[] { affInfos, prefixProvider, sitePrefixProvider });
+            // Act
+            await _task.HandleAsync();
 
-            // Assert - Should only process items with non-zero CustId (1 item)
-            _mockTrackerService.Verify(x => x.InsertDataTrackerAsync(It.IsAny<InsertDataTrackerCommand>()), Times.Once);
+            // Assert - Should call tracker for each supported prefix (2 prefixes: DB1, DB2) with the batch of valid items
+            _mockTrackerService.Verify(
+                x => x.InsertDataTrackerAsync(It.IsAny<InsertDataTrackerCommand>()),
+                Times.Exactly(2)); // 1 batch of valid items * 2 supported prefixes (DB1, DB2)
         }
 
         [Fact]

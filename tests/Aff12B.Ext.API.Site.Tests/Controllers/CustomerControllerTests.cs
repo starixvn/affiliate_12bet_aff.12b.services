@@ -374,106 +374,355 @@ namespace Aff12B.Ext.API.Site.Tests.Controllers
         }
 
         [Fact]
-        public async Task InsertAffiliateInfo_ValidAffiliate_ShouldReturnSuccessResult()
+        public async Task InsertAffInfos_ValidAffiliateParamCollection_ShouldReturnSuccessResult()
         {
             // Arrange
-            var affiliate = new AffiliateParam
+            var affiliateParams = new List<AffiliateParam>
             {
-                AffiliateId = 123,
-                AffiliateCode = "AFF123",
-                AffiliateName = "Test Affiliate",
-                CustId = 456,
-                ParentAffiliate = "PARENT",
-                SiteId = 1,
-                UserName = "testuser",
-                FirstName = "John",
-                LastName = "Doe",
-                ContactNumber = "123-456-7890",
-                Email = "test@example.com",
-                Status = "Active"
+                new AffiliateParam
+                {
+                    AffId = 123,
+                    AffCode = "AFF123",
+                    ParentAff = "PARENT",
+                    UserName = "Test Affiliate",
+                    Player_CustId = 456,
+                    Player_Username = "testuser",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Phone = "123-456-7890",
+                    Email = "test@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                }
             };
 
             _mockRepository
-                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(1));
 
             // Act
-            var result = await _controller.InsertAffiliateInfo(affiliate);
+            var result = await _controller.InsertAffInfos(affiliateParams);
 
             // Assert
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
             result.ErrMsg.Should().BeNull();
-            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task InsertAffiliateInfo_CustIdZero_ShouldUseMarketingCustId()
+        public async Task InsertAffInfos_EmptyCollection_ShouldReturnErrorResult()
         {
             // Arrange
-            var affiliate = new AffiliateParam
-            {
-                AffiliateId = 123,
-                CustId = 0 // Zero should be replaced with -1
-            };
+            var affiliateParams = new List<AffiliateParam>();
 
             _mockRepository
-                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(1));
 
             // Act
-            await _controller.InsertAffiliateInfo(affiliate);
+            var result = await _controller.InsertAffInfos(affiliateParams);
 
             // Assert
-            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Be("AffInfos cannot be empty.");
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
-        public async Task InsertAffiliateInfo_NullOptionalFields_ShouldUseEmptyStrings()
+        public async Task InsertAffInfos_NullCollection_ShouldReturnErrorResult()
         {
             // Arrange
-            var affiliate = new AffiliateParam
-            {
-                AffiliateId = 123,
-                CustId = 456,
-                ParentAffiliate = null,
-                UserName = null,
-                FirstName = null,
-                LastName = null,
-                ContactNumber = null,
-                Email = null,
-                Status = null
-            };
+            IEnumerable<AffiliateParam> affiliateParams = null;
 
             _mockRepository
-                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(1));
 
             // Act
-            await _controller.InsertAffiliateInfo(affiliate);
+            var result = await _controller.InsertAffInfos(affiliateParams);
 
             // Assert
-            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Be("AffInfos cannot be empty.");
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
-        public async Task InsertAffiliateInfo_RepositoryThrowsException_ShouldReturnErrorResult()
+        public async Task InsertAffInfos_RepositoryThrowsException_ShouldReturnErrorResult()
         {
             // Arrange
-            var affiliate = new AffiliateParam { AffiliateId = 123 };
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam { AffId = 123, AffCode = "AFF123" }
+            };
             var expectedError = "Insert failed";
 
             _mockRepository
-                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException(expectedError));
 
             // Act
-            var result = await _controller.InsertAffiliateInfo(affiliate);
+            var result = await _controller.InsertAffInfos(affiliateParams);
 
             // Assert
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeFalse();
             result.ErrMsg.Should().Be(expectedError);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_MultipleAffiliates_ShouldCallRepositoryOnce()
+        {
+            // Arrange
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam
+                {
+                    AffId = 123,
+                    AffCode = "AFF123",
+                    ParentAff = "PARENT1",
+                    UserName = "Affiliate 1",
+                    Player_CustId = 456,
+                    Player_Username = "user1",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Phone = "123-456-7890",
+                    Email = "user1@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                },
+                new AffiliateParam
+                {
+                    AffId = 124,
+                    AffCode = "AFF124",
+                    ParentAff = "PARENT2",
+                    UserName = "Affiliate 2",
+                    Player_CustId = 457,
+                    Player_Username = "user2",
+                    FirstName = "Jane",
+                    LastName = "Smith",
+                    Phone = "098-765-4321",
+                    Email = "user2@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                },
+                new AffiliateParam
+                {
+                    AffId = 125,
+                    AffCode = "AFF125",
+                    ParentAff = "PARENT3",
+                    UserName = "Affiliate 3",
+                    Player_CustId = 458,
+                    Player_Username = "user3",
+                    FirstName = "Bob",
+                    LastName = "Johnson",
+                    Phone = "555-555-5555",
+                    Email = "user3@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                }
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_ValidData_ShouldSerializeToJsonCorrectly()
+        {
+            // Arrange
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam
+                {
+                    AffId = 999,
+                    AffCode = "TESTCODE",
+                    ParentAff = "TESTPARENT",
+                    UserName = "Test Name",
+                    Player_CustId = 888,
+                    Player_Username = "testuser",
+                    FirstName = "First",
+                    LastName = "Last",
+                    Phone = "111-222-3333",
+                    Email = "test@test.com",
+                    Status = "Active",
+                    DealVerifyFlags = 1
+                }
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(
+                x => x.ExecuteAsync(
+                    It.Is<InsertAffInfosCommand>(cmd => !string.IsNullOrEmpty(cmd.AffInfosJson)),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_MinimalFields_ShouldCallRepository()
+        {
+            // Arrange
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam { AffId = 1, AffCode = "CODE1" }
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_LargeCollection_ShouldHandleCorrectly()
+        {
+            // Arrange - Create a large collection with 100 affiliates
+            var affiliateParams = new List<AffiliateParam>();
+            for (int i = 1; i <= 100; i++)
+            {
+                affiliateParams.Add(new AffiliateParam
+                {
+                    AffId = i,
+                    AffCode = $"AFF{i:D3}",
+                    ParentAff = $"PARENT{i}",
+                    UserName = $"Affiliate {i}",
+                    Player_CustId = i + 1000,
+                    Player_Username = $"user{i}",
+                    FirstName = $"First{i}",
+                    LastName = $"Last{i}",
+                    Phone = $"555-{i:D4}",
+                    Email = $"user{i}@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                });
+            }
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_SpecialCharacters_ShouldHandleCorrectly()
+        {
+            // Arrange
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam
+                {
+                    AffId = 123,
+                    AffCode = "AFF@123#",
+                    ParentAff = "PARENT",
+                    UserName = "Test & Co.",
+                    Player_CustId = 456,
+                    Player_Username = "user_name",
+                    FirstName = "O'Brien",
+                    LastName = "Müller",
+                    Phone = "+1 (555) 123-4567",
+                    Email = "test+tag@example.com",
+                    Status = "Active",
+                    DealVerifyFlags = 0
+                }
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_SingleAffiliate_ShouldProcessCorrectly()
+        {
+            // Arrange
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam
+                {
+                    AffId = 100,
+                    AffCode = "AFF100",
+                    Status = "Active"
+                }
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffInfos_SerializationException_ShouldReturnErrorResult()
+        {
+            // Arrange - Setup repository to throw during execution
+            var affiliateParams = new List<AffiliateParam>
+            {
+                new AffiliateParam { AffId = 1, AffCode = "TEST" }
+            };
+            var expectedError = "Serialization error";
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffInfosCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new System.Text.Json.JsonException(expectedError));
+
+            // Act
+            var result = await _controller.InsertAffInfos(affiliateParams);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Contain(expectedError);
         }
 
         [Theory]

@@ -22,10 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Aff12B.Common.DataDomain\Aff12B.Common.DataDomain.csproj" />
     <ProjectReference Include="..\Aff12B.Common.Infrastructure\Aff12B.Common.Infrastructure.csproj" />
     <ProjectReference Include="..\Aff12B.Ext.API.Core\Aff12B.Ext.API.Core.csproj" />

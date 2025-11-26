@@ -15,7 +15,7 @@
     <Setting Key="API_Tag_Get" SpName="API_Tag_Get" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
   </Function>
   <Function Name="AFF_API">
-    <Setting Key="Affiliate_AffiliateInfo_Set" SpName="Affiliate_AffiliateInfo_Set_V5" DbName="12BMemberSite.Siebog.Write.Affiliate_Api"/>
+    <Setting Key="Affiliate_AffiliateInfo_Set" SpName="Affiliate_AffiliateInfo_Set_V6" DbName="12BMemberSite.Siebog.Write.Affiliate_Api"/>
     <Setting Key="Affiliate_LoginCustInfo_Get" SpName="Affiliate_LoginCustInfo_Get" DbName="12BMemberSite.Siebog.Read.Affiliate_Api"/>
     <Setting Key="API_Customer_Unlock" SpName="API_Customer_Unlock" DbName="12BMemberSite.Siebog.Write.Affiliate_Api"/>
     <Setting Key="Affiliate_Wallet_Set" SpName="Affiliate_Wallet_Set" DbName="12BMemberSite.Siebog.Write.Affiliate_Api"/>

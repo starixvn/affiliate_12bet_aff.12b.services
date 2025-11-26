@@ -2,6 +2,6 @@
 {
     public static class DataTrackerType
     {
-        public const int InsertAffiliate = 1;
+        public const int InsertAffInfos = 1;
     }
 }

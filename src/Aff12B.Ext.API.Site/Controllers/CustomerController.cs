@@ -7,8 +7,8 @@ using Aff12B.Ext.API.Infastructure.Params;
 using Fanex.Data.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Text;
-using System.Text.Json;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,7 +19,6 @@ namespace Aff12B.Ext.API.Site.Controllers
     [Authorize]
     public class CustomerController : ControllerBase
     {
-        private const int _Marketing_Cust_ID = -1;
         private readonly IDynamicRepository _dynamicRepository;
         private readonly ILogger _logger;
 
@@ -54,7 +53,7 @@ namespace Aff12B.Ext.API.Site.Controllers
         public async Task<decimal> UpdateCustomerWallet(PaymentRequestParam payment)
         {
             _logger.LogInformation($"Recevice update wallet request\n" +
-                $"Param: {JsonSerializer.Serialize(payment)}\n" +
+                $"Param: {JsonConvert.SerializeObject(payment)}\n" +
                 $"RequestIp: ${GetIpAddress()}");
             var criteria = new UpdateCustomerWalletCommand
             {
@@ -96,26 +95,20 @@ namespace Aff12B.Ext.API.Site.Controllers
         }
 
         [HttpPost]
-        public async Task<ResultInfo> InsertAffiliateInfo(AffiliateParam affiliate)
+        public async Task<ResultInfo> InsertAffInfos(IEnumerable<AffiliateParam> affiliateParams)
         {
             try
             {
-                await _dynamicRepository.ExecuteAsync(new InsertAffiliateInfoCommand
+                if (affiliateParams == null || !affiliateParams.Any())
                 {
-                    AffiliateId = affiliate.AffiliateId,
-                    AffiliateCode = affiliate.AffiliateCode,
-                    AffiliateName = affiliate.AffiliateName,
-                    CustId = affiliate.CustId == 0 ? _Marketing_Cust_ID : affiliate.CustId,
-                    ParentAffiliate = affiliate.ParentAffiliate ?? string.Empty,
-                    SiteId = affiliate.SiteId,
-                    UserName = affiliate.UserName ?? string.Empty,
-                    FirstName = affiliate.FirstName ?? string.Empty,
-                    LastName = affiliate.LastName ?? string.Empty,
-                    ContactNumber = affiliate.ContactNumber ?? string.Empty,
-                    Email = affiliate.Email ?? string.Empty,
-                    Status = affiliate.Status ?? string.Empty,
-                    DealVerifyFlags = affiliate.DealVerifyFlags
+                    return new ResultInfo { IsSuccess = false, ErrMsg = "AffInfos cannot be empty." };
+                }
+
+                await _dynamicRepository.ExecuteAsync(new InsertAffInfosCommand
+                {
+                    AffInfosJson = JsonConvert.SerializeObject(affiliateParams)
                 });
+
                 return new ResultInfo { IsSuccess = true };
             }
             catch (Exception ex)

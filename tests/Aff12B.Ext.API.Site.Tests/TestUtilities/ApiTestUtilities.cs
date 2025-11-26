@@ -99,16 +99,16 @@ namespace Aff12B.Ext.API.Site.Tests.TestUtilities
         {
             return new AffiliateParam
             {
-                CustId = custId,
+                Player_CustId = custId,
                 SiteId = siteId,
-                AffiliateId = affiliateId,
-                AffiliateName = "Test Affiliate",
-                ParentAffiliate = "Parent Affiliate",
-                AffiliateCode = "AFF001",
-                UserName = "testaffiliate",
+                AffId = affiliateId,
+                UserName = "Test Affiliate",
+                ParentAff = "Parent Affiliate",
+                AffCode = "AFF001",
+                Player_Username = "testaffiliate",
                 FirstName = "Test",
                 LastName = "Affiliate",
-                ContactNumber = "+1234567890",
+                Phone = "+1234567890",
                 Email = "test@affiliate.com",
                 Status = "Active"
             };
@@ -172,9 +172,9 @@ namespace Aff12B.Ext.API.Site.Tests.TestUtilities
             {
                 ["custId"] = param.CustId,
                 ["siteId"] = param.SiteId,
-                ["affiliateId"] = param.AffiliateId,
-                ["affiliateName"] = param.AffiliateName ?? "",
-                ["affiliateCode"] = param.AffiliateCode ?? ""
+                ["affiliateId"] = param.AffId,
+                ["affiliateName"] = param.UserName ?? "",
+                ["affiliateCode"] = param.AffCode ?? ""
             };
 
             var queryString = CreateQueryString(parameters);

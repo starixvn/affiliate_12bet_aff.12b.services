@@ -3,10 +3,12 @@ using Fanex.Data;
 
 namespace Aff12B.CronJobs.Infrastructure.SpParams
 {
-    public class AffInfoCriteria(string prefixProvider) : IdenticalSurfixCriteriaBase(prefixProvider), IPagingInfo
+    public class GetAffInfosCriteria(string prefixProvider) : IdenticalSurfixCriteriaBase(prefixProvider), IPagingInfo
     {
         [SpParam(Ignored = true)]
         public string SettingPrefix { get; set; }
+
+        public int DealId { get; set; }
 
         public int PageIndex { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿using Aff12B.Common.DataDomain.Api;
 using Aff12B.Common.DataDomain.Models;
-using Aff12B.Common.DataDomain.Params;
+using Aff12B.CronJobs.Core.Domain.DTOs;
 using Refit;
 
 namespace Aff12B.CronJobs.Infrastructure.Apis
@@ -46,7 +46,7 @@ namespace Aff12B.CronJobs.Infrastructure.Apis
         [Get("/LogReport/GetRebateMLogs")]
         Task<IEnumerable<RebateMLogModel>> GetRebateMLogs(DateTime fromDate, DateTime toDate);
 
-        [Post("/customer/InsertAffiliateInfo")]
-        Task<ResultInfo> InsertAffiliateInfo(AffiliateParam affiliateInfo);
+        [Post("/customer/InsertAffInfos")]
+        Task<ResultInfo> InsertAffInfos(IEnumerable<AffInfo> affInfos);
     }
 }

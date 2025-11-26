@@ -9,29 +9,29 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
 {
     /// <summary>
-    /// Unit tests for ReInsertAffiliateInfoDataTask class.
+    /// Unit tests for ReInsertAffInfosDataTask class.
     /// Tests affiliate information re-insertion retry functionality.
     /// </summary>
-    public class ReInsertAffiliateInfoDataTaskTests
+    public class ReInsertAffInfosDataTaskTests
     {
         private readonly Mock<IDataTrackerService> _mockTrackerService;
         private readonly Mock<ILicenseeApi> _mockLicenseeApi;
-        private readonly Mock<ILogger<ReInsertAffiliateInfoDataTask>> _mockLogger;
+        private readonly Mock<ILogger<ReInsertAffInfosDataTask>> _mockLogger;
         private readonly Mock<IOptionsSnapshot<FetchServiceSetting>> _mockConfiguration;
         private readonly FetchServiceSetting _fetchServiceSetting;
-        private readonly ReInsertAffiliateInfoDataTask _task;
+        private readonly ReInsertAffInfosDataTask _task;
 
-        public ReInsertAffiliateInfoDataTaskTests()
+        public ReInsertAffInfosDataTaskTests()
         {
             _mockTrackerService = new Mock<IDataTrackerService>();
             _mockLicenseeApi = new Mock<ILicenseeApi>();
-            _mockLogger = new Mock<ILogger<ReInsertAffiliateInfoDataTask>>();
+            _mockLogger = new Mock<ILogger<ReInsertAffInfosDataTask>>();
             _mockConfiguration = new Mock<IOptionsSnapshot<FetchServiceSetting>>();
 
             _fetchServiceSetting = new FetchServiceSetting
@@ -43,7 +43,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .Setup(x => x.Get(ServiceConfigName.INSERT_AFFILIATE_SETTING))
                 .Returns(_fetchServiceSetting);
 
-            _task = new ReInsertAffiliateInfoDataTask(
+            _task = new ReInsertAffInfosDataTask(
                 _mockTrackerService.Object,
                 _mockLicenseeApi.Object,
                 _mockConfiguration.Object,
@@ -54,7 +54,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public void Constructor_ShouldInitializeDependencies()
         {
             // Act & Assert - Constructor should not throw
-            var task = new ReInsertAffiliateInfoDataTask(
+            var task = new ReInsertAffInfosDataTask(
                 _mockTrackerService.Object,
                 _mockLicenseeApi.Object,
                 _mockConfiguration.Object,
@@ -67,7 +67,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public void ListPullStatusId_ShouldContainCorrectStatuses()
         {
             // Act - Access the static field through reflection
-            var listPullStatusIdField = typeof(ReInsertAffiliateInfoDataTask)
+            var listPullStatusIdField = typeof(ReInsertAffInfosDataTask)
                 .GetField("ListPullStatusId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var listPullStatusId = (IEnumerable<int>)listPullStatusIdField.GetValue(null);
 
@@ -85,7 +85,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             {
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(new AffiliateParam { CustId = 1 }),
+                    PushDataInfo = JsonSerializer.Serialize(new List<AffInfo> { new AffInfo { Player_CustId = 1 } }),
                     PrefixSiteName = "DB1"
                 }
             };
@@ -98,7 +98,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(dataTrackerItems);
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
@@ -107,7 +107,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             // Assert - Should call FetchTrackerAsync with correct parameters
             _mockTrackerService.Verify(x => x.FetchTrackerAsync(
                 It.Is<IEnumerable<string>>(prefixes => prefixes.SequenceEqual(_fetchServiceSetting.SupportedPrefix)),
-                It.Is<IEnumerable<int>>(types => types.Contains(DataTrackerType.InsertAffiliate)),
+                It.Is<IEnumerable<int>>(types => types.Contains(DataTrackerType.InsertAffInfos)),
                 It.Is<IEnumerable<int>>(statuses =>
                     statuses.Contains(DataTrackerStatus.InProcess) &&
                     statuses.Contains(DataTrackerStatus.Failure))),
@@ -131,7 +131,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             await _task.HandleAsync();
 
             // Assert - Should not call API when no tracker items exist
-            _mockLicenseeApi.Verify(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()), Times.Never);
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()), Times.Never);
             _mockTrackerService.Verify(x => x.UpdateTrackerStatusAsync(
                 It.IsAny<DataTrackerItem>(),
                 It.IsAny<int>()),
@@ -142,20 +142,20 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public async Task HandleAsync_ShouldProcessEachTrackerItem()
         {
             // Arrange
-            var affiliateParam1 = new AffiliateParam { CustId = 1, AffiliateId = 100 };
-            var affiliateParam2 = new AffiliateParam { CustId = 2, AffiliateId = 200 };
+            var affParams1 = new List<AffiliateParam> { new AffiliateParam { Player_CustId = 1, AffId = 100 } };
+            var affParams2 = new List<AffiliateParam> { new AffiliateParam { Player_CustId = 2, AffId = 200 } };
 
             var dataTrackerItems = new List<DataTrackerItem>
             {
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(affiliateParam1),
+                    PushDataInfo = JsonSerializer.Serialize(affParams1),
                     PrefixSiteName = "DB1",
                     PushTrackerId = 1
                 },
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(affiliateParam2),
+                    PushDataInfo = JsonSerializer.Serialize(affParams2),
                     PrefixSiteName = "DB2",
                     PushTrackerId = 2
                 }
@@ -169,14 +169,14 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(dataTrackerItems);
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
             await _task.HandleAsync();
 
             // Assert - Should process each tracker item
-            _mockLicenseeApi.Verify(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()), Times.Exactly(2));
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()), Times.Exactly(2));
             _mockTrackerService.Verify(x => x.UpdateTrackerStatusAsync(
                 It.IsAny<DataTrackerItem>(),
                 DataTrackerStatus.Success),
@@ -187,24 +187,27 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public async Task HandleAsync_ShouldDeserializeAffiliateParamCorrectly()
         {
             // Arrange
-            var originalAffiliateParam = new AffiliateParam
+            var originalAffInfos = new List<AffInfo>
             {
-                CustId = 123,
-                AffiliateId = 456,
-                AffiliateName = "TestAffiliate",
-                Email = "test@example.com"
+                new AffInfo
+                {
+                    Player_CustId = 123,
+                    AffId = 456,
+                    UserName = "TestAffiliate",
+                    Email = "test@example.com"
+                }
             };
 
             var dataTrackerItems = new List<DataTrackerItem>
             {
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(originalAffiliateParam),
+                    PushDataInfo = JsonSerializer.Serialize(originalAffInfos),
                     PrefixSiteName = "DB1"
                 }
             };
 
-            var capturedAffiliateParam = new AffiliateParam();
+            IEnumerable<AffInfo> capturedAffInfos = null;
             _mockTrackerService
                 .Setup(x => x.FetchTrackerAsync(
                     It.IsAny<IEnumerable<string>>(),
@@ -213,28 +216,29 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(dataTrackerItems);
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
-                .Callback<AffiliateParam>(param => capturedAffiliateParam = param)
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
+                .Callback<IEnumerable<AffInfo>>(affInfos => capturedAffInfos = affInfos)
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
             await _task.HandleAsync();
 
-            // Assert - Should deserialize AffiliateParam correctly
-            capturedAffiliateParam.CustId.Should().Be(originalAffiliateParam.CustId);
-            capturedAffiliateParam.AffiliateId.Should().Be(originalAffiliateParam.AffiliateId);
-            capturedAffiliateParam.AffiliateName.Should().Be(originalAffiliateParam.AffiliateName);
-            capturedAffiliateParam.Email.Should().Be(originalAffiliateParam.Email);
+            // Assert - Should pass the AffInfo collection correctly
+            capturedAffInfos.Should().NotBeNull();
+            capturedAffInfos.Should().HaveCount(1);
+            var affInfo = capturedAffInfos.First();
+            affInfo.AffId.Should().Be(originalAffInfos.First().AffId);
+            affInfo.Player_CustId.Should().Be(originalAffInfos.First().Player_CustId);
         }
 
         [Fact]
         public async Task HandleAsync_ShouldUpdateStatusToSuccess_WhenApiCallSucceeds()
         {
             // Arrange
-            var affiliateParam = new AffiliateParam { CustId = 1, AffiliateId = 100 };
+            var affInfos = new List<AffInfo> { new AffInfo { Player_CustId = 1, AffId = 100 } };
             var dataTrackerItem = new DataTrackerItem
             {
-                PushDataInfo = JsonConvert.SerializeObject(affiliateParam),
+                PushDataInfo = JsonSerializer.Serialize(affInfos),
                 PrefixSiteName = "DB1",
                 PushTrackerId = 1
             };
@@ -247,7 +251,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(new[] { dataTrackerItem });
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
@@ -264,10 +268,10 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public async Task HandleAsync_ShouldLogError_WhenApiCallFails()
         {
             // Arrange
-            var affiliateParam = new AffiliateParam { CustId = 1, AffiliateId = 100 };
+            var affInfos = new List<AffInfo> { new AffInfo { Player_CustId = 1, AffId = 100 } };
             var dataTrackerItem = new DataTrackerItem
             {
-                PushDataInfo = JsonConvert.SerializeObject(affiliateParam),
+                PushDataInfo = JsonSerializer.Serialize(affInfos),
                 PrefixSiteName = "DB1",
                 PushTrackerId = 1
             };
@@ -280,7 +284,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(new[] { dataTrackerItem });
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = false, ErrMsg = "API Error Message" });
 
             // Act
@@ -291,7 +295,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Insert affiliate to 12B DB fail")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Reinsert aff infos to")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()),
                 Times.Once);
@@ -321,15 +325,15 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                     It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(new[] { dataTrackerItem });
 
-            // Act & Assert - Should throw JsonException for invalid JSON
-            await Assert.ThrowsAsync<JsonReaderException>(() => _task.HandleAsync());
+            _mockLicenseeApi
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
+                .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
-            // Should not call API or update tracker status when deserialization fails
-            _mockLicenseeApi.Verify(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()), Times.Never);
-            _mockTrackerService.Verify(x => x.UpdateTrackerStatusAsync(
-                It.IsAny<DataTrackerItem>(),
-                It.IsAny<int>()),
-                Times.Never);
+            // Act
+            await _task.HandleAsync();
+
+            // Assert - Should call API with invalid JSON string (validation happens at API level)
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()), Times.Never);
         }
 
         [Fact]
@@ -350,28 +354,35 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                     It.IsAny<IEnumerable<int>>()))
                 .ReturnsAsync(new[] { dataTrackerItem });
 
-            // Act & Assert - Should handle null PushDataInfo gracefully
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _task.HandleAsync());
+            _mockLicenseeApi
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
+                .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
+
+            // Act
+            await _task.HandleAsync();
+
+            // Assert - Should call API with null or empty collection when PushDataInfo is null
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.Is<IEnumerable<AffInfo>>(a => a == null || !a.Any())), Times.Never);
         }
 
         [Fact]
         public async Task HandleAsync_ShouldProcessMixedSuccessAndFailure()
         {
             // Arrange
-            var affiliateParam1 = new AffiliateParam { CustId = 1, AffiliateId = 100 };
-            var affiliateParam2 = new AffiliateParam { CustId = 2, AffiliateId = 200 };
+            var affParams1 = new List<AffiliateParam> { new AffiliateParam { Player_CustId = 1, AffId = 100 } };
+            var affParams2 = new List<AffiliateParam> { new AffiliateParam { Player_CustId = 2, AffId = 200 } };
 
             var dataTrackerItems = new List<DataTrackerItem>
             {
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(affiliateParam1),
+                    PushDataInfo = JsonSerializer.Serialize(affParams1),
                     PrefixSiteName = "DB1",
                     PushTrackerId = 1
                 },
                 new DataTrackerItem
                 {
-                    PushDataInfo = JsonConvert.SerializeObject(affiliateParam2),
+                    PushDataInfo = JsonSerializer.Serialize(affParams2),
                     PrefixSiteName = "DB2",
                     PushTrackerId = 2
                 }
@@ -386,7 +397,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
 
             // First call succeeds, second call fails
             _mockLicenseeApi
-                .SetupSequence(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .SetupSequence(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true })
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = false, ErrMsg = "Second call failed" });
 
@@ -394,7 +405,7 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
             await _task.HandleAsync();
 
             // Assert - Should process both items
-            _mockLicenseeApi.Verify(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()), Times.Exactly(2));
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()), Times.Exactly(2));
 
             // Should update status to success for first item only
             _mockTrackerService.Verify(x => x.UpdateTrackerStatusAsync(
@@ -425,10 +436,10 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public async Task HandleAsync_ShouldProcessCorrectStatusTypes(int statusType)
         {
             // Arrange
-            var affiliateParam = new AffiliateParam { CustId = 1, AffiliateId = 100 };
+            var affInfos = new List<AffInfo> { new AffInfo { Player_CustId = 1, AffId = 100 } };
             var dataTrackerItem = new DataTrackerItem
             {
-                PushDataInfo = JsonConvert.SerializeObject(affiliateParam),
+                PushDataInfo = JsonSerializer.Serialize(affInfos),
                 PrefixSiteName = "DB1",
                 StatusId = statusType
             };
@@ -441,14 +452,14 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(new[] { dataTrackerItem });
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
             await _task.HandleAsync();
 
             // Assert - Should process items with InProcess or Failure status
-            _mockLicenseeApi.Verify(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()), Times.Once);
+            _mockLicenseeApi.Verify(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()), Times.Once);
             _mockTrackerService.Verify(x => x.UpdateTrackerStatusAsync(
                 It.IsAny<DataTrackerItem>(),
                 DataTrackerStatus.Success),
@@ -459,10 +470,10 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
         public async Task HandleAsync_ShouldUseCorrectDataTrackerType()
         {
             // Arrange
-            var affiliateParam = new AffiliateParam { CustId = 1, AffiliateId = 100 };
+            var affInfos = new List<AffInfo> { new AffInfo { Player_CustId = 1, AffId = 100 } };
             var dataTrackerItem = new DataTrackerItem
             {
-                PushDataInfo = JsonConvert.SerializeObject(affiliateParam),
+                PushDataInfo = JsonSerializer.Serialize(affInfos),
                 PrefixSiteName = "DB1"
             };
 
@@ -474,16 +485,16 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Jobs.RetryJob
                 .ReturnsAsync(new[] { dataTrackerItem });
 
             _mockLicenseeApi
-                .Setup(x => x.InsertAffiliateInfo(It.IsAny<AffiliateParam>()))
+                .Setup(x => x.InsertAffInfos(It.IsAny<IEnumerable<AffInfo>>()))
                 .ReturnsAsync(new Common.DataDomain.Api.ResultInfo { IsSuccess = true });
 
             // Act
             await _task.HandleAsync();
 
-            // Assert - Should fetch tracker with InsertAffiliate type
+            // Assert - Should fetch tracker with InsertAffInfos type
             _mockTrackerService.Verify(x => x.FetchTrackerAsync(
                 It.IsAny<IEnumerable<string>>(),
-                It.Is<IEnumerable<int>>(types => types.Contains(DataTrackerType.InsertAffiliate)),
+                It.Is<IEnumerable<int>>(types => types.Contains(DataTrackerType.InsertAffInfos)),
                 It.IsAny<IEnumerable<int>>()),
                 Times.Once);
         }

@@ -1,4 +1,4 @@
-﻿using Aff12B.Common.DataDomain.Params;
+﻿using Aff12B.CronJobs.Core.Domain.DTOs;
 using Aff12B.CronJobs.Core.Services;
 using Aff12B.CronJobs.Infrastructure.Apis;
 using Aff12B.CronJobs.Infrastructure.Configurations;
@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 {
-    public class ReInsertAffiliateInfoDataTask : IRetryDataTask
+    public class ReInsertAffInfosDataTask : IRetryDataTask
     {
         private readonly IDataTrackerService _trackerService;
         private readonly ILicenseeApi _liceseeApi;
@@ -21,10 +21,10 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
 
         private FetchServiceSetting Setting { get; }
 
-        public ReInsertAffiliateInfoDataTask(IDataTrackerService dataTrackerService,
+        public ReInsertAffInfosDataTask(IDataTrackerService dataTrackerService,
             ILicenseeApi licenseeApi,
             IOptionsSnapshot<FetchServiceSetting> configuration,
-            ILogger<ReInsertAffiliateInfoDataTask> logger
+            ILogger<ReInsertAffInfosDataTask> logger
             )
         {
             _trackerService = dataTrackerService;
@@ -40,21 +40,29 @@ namespace Aff12B.CronJobs.Infrastructure.Jobs.RetryJob
             var prefixProviders = Setting.SupportedPrefix;
             var dataTrackerItems = await _trackerService.FetchTrackerAsync(
                 prefixProviders,
-                new[] { DataTrackerType.InsertAffiliate },
+                new[] { DataTrackerType.InsertAffInfos },
                 ListPullStatusId
             );
 
             foreach (var item in dataTrackerItems)
             {
-                var affiliateInfo = JsonConvert.DeserializeObject<AffiliateParam>(item.PushDataInfo);
-                var result = await _liceseeApi.InsertAffiliateInfo(affiliateInfo);
-                if (result.IsSuccess)
+                try
                 {
-                    await _trackerService.UpdateTrackerStatusAsync(item, DataTrackerStatus.Success);
+                    var affInfos = JsonConvert.DeserializeObject<IEnumerable<AffInfo>>(item.PushDataInfo);
+                    var result = await _liceseeApi.InsertAffInfos(affInfos);
+
+                    if (result.IsSuccess)
+                    {
+                        await _trackerService.UpdateTrackerStatusAsync(item, DataTrackerStatus.Success);
+                    }
+                    else
+                    {
+                        _logger.LogError($"Reinsert aff infos to {item.PrefixSiteName} fail - {result.ErrMsg}");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogError($"Insert affiliate to 12B DB fail - {result.ErrMsg}");
+                    _logger.LogError($"Reinsert aff infos to {item.PrefixSiteName} DB throw exception - {ex}");
                 }
             }
         }

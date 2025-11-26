@@ -42,13 +42,13 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
 
         #endregion
 
-        #region GetAffInfoListAsync Tests
+        #region GetAffInfosAsync Tests
 
         [Fact]
-        public async Task GetAffInfoListAsync_ValidPaging_ShouldReturnAffInfo()
+        public async Task GetAffInfosAsync_ValidPaging_ShouldReturnAffInfo()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST") { PageIndex = 0, PageSize = 10 };
+            var pagingInfo = new GetAffInfosCriteria("TEST") { PageIndex = 0, PageSize = 10 };
             var expectedResult = new List<AffInfo>
             {
                 new AffInfo
@@ -82,55 +82,55 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
             };
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _repository.GetAffInfoListAsync(pagingInfo);
+            var result = await _repository.GetAffInfosAsync(pagingInfo);
 
             // Assert
             result.Should().BeEquivalentTo(expectedResult);
             result.Should().HaveCount(2);
             _mockDynamicRepository.Verify(
-                x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_ShouldUseCriteriaCorrectly()
+        public async Task GetAffInfosAsync_ShouldUseCriteriaCorrectly()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST") { PageIndex = 1, PageSize = 20 };
+            var pagingInfo = new GetAffInfosCriteria("TEST") { PageIndex = 1, PageSize = 20 };
             var expectedResult = new List<AffInfo>();
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            await _repository.GetAffInfoListAsync(pagingInfo);
+            await _repository.GetAffInfosAsync(pagingInfo);
 
             // Assert
             _mockDynamicRepository.Verify(
                 x => x.FetchAsync<AffInfo>(
-                    It.Is<AffInfoCriteria>(c => c.PageIndex == 1 && c.PageSize == 20),
+                    It.Is<GetAffInfosCriteria>(c => c.PageIndex == 1 && c.PageSize == 20),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_EmptyResult_ShouldReturnEmptyEnumerable()
+        public async Task GetAffInfosAsync_EmptyResult_ShouldReturnEmptyEnumerable()
         {
             // Arrange
             var expectedResult = new List<AffInfo>();
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _repository.GetAffInfoListAsync(new AffInfoCriteria(string.Empty));
+            var result = await _repository.GetAffInfosAsync(new GetAffInfosCriteria(string.Empty));
 
             // Assert
             result.Should().BeEmpty();
@@ -138,10 +138,10 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
 
         [Fact]
         [Trait("Category", "Performance")]
-        public async Task GetAffInfoListAsync_LargeDataset_ShouldReturnAllResults()
+        public async Task GetAffInfosAsync_LargeDataset_ShouldReturnAllResults()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST") { PageIndex = 0, PageSize = 10 };
+            var pagingInfo = new GetAffInfosCriteria("TEST") { PageIndex = 0, PageSize = 10 };
             var expectedResult = new List<AffInfo>();
 
             // Generate 10 test affiliate records (reduced from 100 for performance)
@@ -167,11 +167,11 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
             GC.Collect();
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _repository.GetAffInfoListAsync(pagingInfo);
+            var result = await _repository.GetAffInfosAsync(pagingInfo);
 
             // Assert
             result.Should().HaveCount(10);
@@ -179,18 +179,18 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_RepositoryThrowsException_ShouldPropagateException()
+        public async Task GetAffInfosAsync_RepositoryThrowsException_ShouldPropagateException()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST");
+            var pagingInfo = new GetAffInfosCriteria("TEST");
             var expectedException = new InvalidOperationException("Database query failed");
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var act = async () => await _repository.GetAffInfoListAsync(pagingInfo);
+            var act = async () => await _repository.GetAffInfosAsync(pagingInfo);
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Database query failed");
         }
@@ -199,10 +199,10 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
         [InlineData(1)]
         [InlineData(10)]
         [InlineData(50)]
-        public async Task GetAffInfoListAsync_VariousPageSizes_ShouldHandleAllCorrectly(int pageSize)
+        public async Task GetAffInfosAsync_VariousPageSizes_ShouldHandleAllCorrectly(int pageSize)
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST") { PageIndex = 0, PageSize = pageSize };
+            var pagingInfo = new GetAffInfosCriteria("TEST") { PageIndex = 0, PageSize = pageSize };
             var expectedResult = new List<AffInfo>();
 
             for (int i = 1; i <= pageSize; i++)
@@ -224,11 +224,11 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
             }
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _repository.GetAffInfoListAsync(pagingInfo);
+            var result = await _repository.GetAffInfosAsync(pagingInfo);
 
             // Assert
             result.Should().HaveCount(pageSize);
@@ -236,29 +236,29 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_NullRepository_ShouldThrowException()
+        public async Task GetAffInfosAsync_NullRepository_ShouldThrowException()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("TEST");
+            var pagingInfo = new GetAffInfosCriteria("TEST");
             var expectedException = new NullReferenceException("Repository is null");
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var act = async () => await _repository.GetAffInfoListAsync(pagingInfo);
+            var act = async () => await _repository.GetAffInfosAsync(pagingInfo);
             await act.Should().ThrowAsync<NullReferenceException>()
                 .WithMessage("Repository is null");
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_MultipleCalls_ShouldCallRepositoryMultipleTimes()
+        public async Task GetAffInfosAsync_MultipleCalls_ShouldCallRepositoryMultipleTimes()
         {
             // Arrange
-            var pagingInfo1 = new AffInfoCriteria("TEST1") { PageIndex = 0, PageSize = 10 };
-            var pagingInfo2 = new AffInfoCriteria("TEST2") { PageIndex = 1, PageSize = 20 };
-            var pagingInfo3 = new AffInfoCriteria("TEST3") { PageIndex = 2, PageSize = 30 };
+            var pagingInfo1 = new GetAffInfosCriteria("TEST1") { PageIndex = 0, PageSize = 10 };
+            var pagingInfo2 = new GetAffInfosCriteria("TEST2") { PageIndex = 1, PageSize = 20 };
+            var pagingInfo3 = new GetAffInfosCriteria("TEST3") { PageIndex = 2, PageSize = 30 };
             var expectedResult = new List<AffInfo>
             {
                 new AffInfo
@@ -278,25 +278,25 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
             };
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            await _repository.GetAffInfoListAsync(pagingInfo1);
-            await _repository.GetAffInfoListAsync(pagingInfo2);
-            await _repository.GetAffInfoListAsync(pagingInfo3);
+            await _repository.GetAffInfosAsync(pagingInfo1);
+            await _repository.GetAffInfosAsync(pagingInfo2);
+            await _repository.GetAffInfosAsync(pagingInfo3);
 
             // Assert
             _mockDynamicRepository.Verify(
-                x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
                 Times.Exactly(3));
         }
 
         [Fact]
-        public async Task GetAffInfoListAsync_WithSpecificAffiliateData_ShouldReturnCorrectData()
+        public async Task GetAffInfosAsync_WithSpecificAffiliateData_ShouldReturnCorrectData()
         {
             // Arrange
-            var pagingInfo = new AffInfoCriteria("PREMIUM") { PageIndex = 0, PageSize = 1 };
+            var pagingInfo = new GetAffInfosCriteria("PREMIUM") { PageIndex = 0, PageSize = 1 };
             var expectedResult = new List<AffInfo>
             {
                 new AffInfo
@@ -316,11 +316,11 @@ namespace Aff12B.CronJobs.Infrastructure.Tests.Repository
             };
 
             _mockDynamicRepository
-                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<AffInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.FetchAsync<AffInfo>(It.IsAny<GetAffInfosCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _repository.GetAffInfoListAsync(pagingInfo);
+            var result = await _repository.GetAffInfosAsync(pagingInfo);
 
             // Assert
             var affInfo = result.First();

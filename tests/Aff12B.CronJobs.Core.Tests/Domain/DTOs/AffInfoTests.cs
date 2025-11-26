@@ -19,15 +19,15 @@ namespace Aff12B.CronJobs.Core.Tests.Domain.DTOs
             // Assert
             affInfo.AffId.Should().Be(0);
             affInfo.AffCode.Should().BeNull();
-            affInfo.ParentAff.Should().BeNull();
-            affInfo.UserName.Should().BeNull();
+            affInfo.ParentAff.Should().BeNull(); // Initialized with empty string
+            affInfo.UserName.Should().BeNull(); // Initialized with empty string
             affInfo.Player_CustId.Should().Be(0);
-            affInfo.Player_Username.Should().BeNull();
-            affInfo.FirstName.Should().BeNull();
-            affInfo.LastName.Should().BeNull();
-            affInfo.Phone.Should().BeNull();
-            affInfo.Email.Should().BeNull();
-            affInfo.Status.Should().BeNull();
+            affInfo.Player_Username.Should().BeNull(); // Initialized with empty string
+            affInfo.FirstName.Should().BeNull(); // Initialized with empty string
+            affInfo.LastName.Should().BeNull(); // Initialized with empty string
+            affInfo.Phone.Should().BeNull(); // Initialized with empty string
+            affInfo.Email.Should().BeNull(); // Initialized with empty string
+            affInfo.Status.Should().BeNull(); // Initialized with empty string
         }
 
         [Fact]
@@ -320,21 +320,21 @@ namespace Aff12B.CronJobs.Core.Tests.Domain.DTOs
                 AffId = 12345,
                 AffCode = "AFF001",
                 Status = "Active"
-                // Other properties left as default/null
+                // Other properties left as default (empty string for strings, 0 for integers)
             };
 
             // Assert
             affInfo.AffId.Should().Be(12345);
             affInfo.AffCode.Should().Be("AFF001");
             affInfo.Status.Should().Be("Active");
-            affInfo.ParentAff.Should().BeNull();
-            affInfo.UserName.Should().BeNull();
+            affInfo.ParentAff.Should().BeNull(); // Default value
+            affInfo.UserName.Should().BeNull(); // Default value
             affInfo.Player_CustId.Should().Be(0);
-            affInfo.Player_Username.Should().BeNull();
-            affInfo.FirstName.Should().BeNull();
-            affInfo.LastName.Should().BeNull();
-            affInfo.Phone.Should().BeNull();
-            affInfo.Email.Should().BeNull();
+            affInfo.Player_Username.Should().BeNull(); // Default value
+            affInfo.FirstName.Should().BeNull(); // Default value
+            affInfo.LastName.Should().BeNull(); // Default value
+            affInfo.Phone.Should().BeNull(); // Default value
+            affInfo.Email.Should().BeNull(); // Default value
         }
 
         [Theory]
