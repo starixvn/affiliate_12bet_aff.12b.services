@@ -588,5 +588,285 @@ namespace Aff12B.Ext.API.Site.Tests.Controllers
             // Assert
             _mockRepository.Verify(x => x.GetAsync<CustomerModel>(It.IsAny<GetLoginCustInfoCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task InsertIdCode_ValidParam_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "TEST123",
+                SiteId = 1,
+                StatusId = 2
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            result.ErrMsg.Should().BeNull();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_RepositoryThrowsException_ShouldReturnErrorResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "TEST123",
+                SiteId = 1,
+                StatusId = 2
+            };
+            var expectedError = "Insert failed";
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException(expectedError));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Be(expectedError);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_ShouldMapParametersCorrectly()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "PREMIUM_CODE_001",
+                SiteId = 5,
+                StatusId = 10
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertIdCode(param);
+
+            // Assert
+            _mockRepository.Verify(x => x.ExecuteAsync(
+                It.Is<InsertIdCodeCommand>(cmd => 
+                    cmd.IdCode == "PREMIUM_CODE_001" && 
+                    cmd.SiteId == 5 && 
+                    cmd.StatusId == 10), 
+                It.IsAny<string>(), 
+                It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_NullIdCode_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = null,
+                SiteId = 1,
+                StatusId = 2
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_EmptyIdCode_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "",
+                SiteId = 1,
+                StatusId = 2
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("CODE1", 1, 1)]
+        [InlineData("CODE2", 2, 2)]
+        [InlineData("CODE3", 5, 10)]
+        [InlineData("ALPHA_123", 100, 200)]
+        public async Task InsertIdCode_VariousParameters_ShouldWork(string idCode, int siteId, int statusId)
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = idCode,
+                SiteId = siteId,
+                StatusId = statusId
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_ZeroSiteIdAndStatusId_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "TEST",
+                SiteId = 0,
+                StatusId = 0
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_NegativeSiteIdAndStatusId_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "TEST",
+                SiteId = -1,
+                StatusId = -100
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_SpecialCharactersInIdCode_ShouldReturnSuccessResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "!@#$%^&*()",
+                SiteId = 1,
+                StatusId = 2
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertIdCode_DatabaseException_ShouldReturnErrorResult()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "TEST",
+                SiteId = 1,
+                StatusId = 2
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Database connection error"));
+
+            // Act
+            var result = await _controller.InsertIdCode(param);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Be("Database connection error");
+        }
+
+        [Fact]
+        public async Task InsertIdCode_CommandExecutionSucceeds_ShouldCallRepositoryOnce()
+        {
+            // Arrange
+            var param = new IdCodeParam
+            {
+                IdCode = "VERIFY_CALL",
+                SiteId = 99,
+                StatusId = 88
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertIdCodeCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertIdCode(param);
+
+            // Assert
+            _mockRepository.Verify(x => x.ExecuteAsync(
+                It.Is<InsertIdCodeCommand>(cmd => 
+                    cmd.IdCode == "VERIFY_CALL" && 
+                    cmd.SiteId == 99 && 
+                    cmd.StatusId == 88), 
+                It.IsAny<string>(), 
+                It.IsAny<CancellationToken>()), 
+                Times.Once);
+        }
     }
 }

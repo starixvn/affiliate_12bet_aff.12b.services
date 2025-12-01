@@ -1,19 +1,19 @@
-using Aff12B.Common.DataDomain.Api;
-using Aff12B.Common.DataDomain.Models;
-using Aff12B.Common.DataDomain.Params;
-using Aff12B.Ext.API.Infastructure.Command;
-using Aff12B.Ext.API.Infastructure.Criteria;
-using Aff12B.Ext.API.Infastructure.Params;
-using Fanex.Data.Repository;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Text.Json;
-
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Aff12B.Ext.API.Site.Controllers
 {
+    using System.Text;
+    using System.Text.Json;
+    using Common.DataDomain.Api;
+    using Common.DataDomain.Models;
+    using Common.DataDomain.Params;
+    using Fanex.Data.Repository;
+    using Infastructure.Command;
+    using Infastructure.Criteria;
+    using Infastructure.Params;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+
     [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize]
@@ -33,11 +33,9 @@ namespace Aff12B.Ext.API.Site.Controllers
         public async Task<IEnumerable<AffCustomerModel>> GetAffCustomers(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000)
             => await _dynamicRepository.FetchAsync<AffCustomerModel>(new GetAffCustomersCriteria(fromDate, toDate, pageIndex, pageSize));
 
-
         [HttpGet]
         public async Task<IEnumerable<CustomerModel>> GetCustomers(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000)
             => await _dynamicRepository.FetchAsync<CustomerModel>(new GetCustomersCriteria(fromDate, toDate, pageIndex, pageSize));
-
 
         [HttpGet]
         public async Task<CustomerModel> GetLoginCustomerInfo(string userName, int siteId)
@@ -115,6 +113,29 @@ namespace Aff12B.Ext.API.Site.Controllers
                     Email = affiliate.Email ?? string.Empty,
                     Status = affiliate.Status ?? string.Empty,
                     DealVerifyFlags = affiliate.DealVerifyFlags
+                });
+                return new ResultInfo { IsSuccess = true };
+            }
+            catch (Exception ex)
+            {
+                return new ResultInfo
+                {
+                    IsSuccess = false,
+                    ErrMsg = ex.Message
+                };
+            }
+        }
+
+        [HttpPost]
+        public async Task<ResultInfo> InsertIdCode(IdCodeParam param)
+        {
+            try
+            {
+                await _dynamicRepository.ExecuteAsync(new InsertIdCodeCommand
+                {
+                    IdCode = param.IdCode,
+                    SiteId = param.SiteId,
+                    StatusId = param.StatusId
                 });
                 return new ResultInfo { IsSuccess = true };
             }
