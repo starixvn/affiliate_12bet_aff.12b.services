@@ -476,6 +476,250 @@ namespace Aff12B.Ext.API.Site.Tests.Controllers
             result.ErrMsg.Should().Be(expectedError);
         }
 
+        [Fact]
+        public async Task InsertAffiliateInfo_ShouldMapAllFieldsCorrectly()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 999,
+                AffiliateCode = "TEST999",
+                AffiliateName = "Test Affiliate Name",
+                CustId = 888,
+                ParentAffiliate = "PARENT999",
+                SiteId = 5,
+                UserName = "testuser999",
+                FirstName = "John",
+                LastName = "Smith",
+                ContactNumber = "+1-555-0199",
+                Email = "john.smith@test.com",
+                Status = "Active",
+                DealVerifyFlags = 7
+            };
+
+            InsertAffiliateInfoCommand capturedCommand = null;
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<INonQueryCommand, string, CancellationToken>((cmd, connStr, ct) =>
+                {
+                    capturedCommand = cmd as InsertAffiliateInfoCommand;
+                })
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            capturedCommand.Should().NotBeNull();
+            capturedCommand.AffiliateId.Should().Be(affiliate.AffiliateId);
+            capturedCommand.AffiliateCode.Should().Be(affiliate.AffiliateCode);
+            capturedCommand.AffiliateName.Should().Be(affiliate.AffiliateName);
+            capturedCommand.CustId.Should().Be(affiliate.CustId);
+            capturedCommand.ParentAffiliate.Should().Be(affiliate.ParentAffiliate);
+            capturedCommand.SiteId.Should().Be(affiliate.SiteId);
+            capturedCommand.UserName.Should().Be(affiliate.UserName);
+            capturedCommand.FirstName.Should().Be(affiliate.FirstName);
+            capturedCommand.LastName.Should().Be(affiliate.LastName);
+            capturedCommand.ContactNumber.Should().Be(affiliate.ContactNumber);
+            capturedCommand.Email.Should().Be(affiliate.Email);
+            capturedCommand.Status.Should().Be(affiliate.Status);
+            capturedCommand.DealVerifyFlags.Should().Be(affiliate.DealVerifyFlags);
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_WithMinimalData_ShouldSucceed()
+        {
+            // Arrange - Only required fields
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 100,
+                AffiliateCode = "MIN100",
+                CustId = 200
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_WithSpecialCharacters_ShouldHandleCorrectly()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 123,
+                AffiliateCode = "AFF@123#",
+                AffiliateName = "Test & Co.",
+                CustId = 456,
+                UserName = "user_name",
+                FirstName = "O'Brien",
+                LastName = "Müller",
+                ContactNumber = "+1 (555) 123-4567",
+                Email = "test+tag@example.com",
+                Status = "Active"
+            };
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(1));
+
+            // Act
+            var result = await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_NegativeCustId_ShouldNotConvertToMarketingId()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 123,
+                CustId = -5 // Already negative, should stay -5
+            };
+
+            InsertAffiliateInfoCommand capturedCommand = null;
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<INonQueryCommand, string, CancellationToken>((cmd, connStr, ct) =>
+                {
+                    capturedCommand = cmd as InsertAffiliateInfoCommand;
+                })
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            capturedCommand.Should().NotBeNull();
+            capturedCommand.CustId.Should().Be(-5); // Should not be converted to -1
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_EmptyStringFields_ShouldPreserveEmptyStrings()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 123,
+                CustId = 456,
+                ParentAffiliate = string.Empty,
+                UserName = string.Empty,
+                FirstName = string.Empty
+            };
+
+            InsertAffiliateInfoCommand capturedCommand = null;
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<INonQueryCommand, string, CancellationToken>((cmd, connStr, ct) =>
+                {
+                    capturedCommand = cmd as InsertAffiliateInfoCommand;
+                })
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            capturedCommand.Should().NotBeNull();
+            capturedCommand.ParentAffiliate.Should().Be(string.Empty);
+            capturedCommand.UserName.Should().Be(string.Empty);
+            capturedCommand.FirstName.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_DatabaseConstraintViolation_ShouldReturnErrorResult()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam { AffiliateId = 123 };
+            var sqlException = "Duplicate key constraint violation";
+
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException(sqlException));
+
+            // Act
+            var result = await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.ErrMsg.Should().Contain(sqlException);
+        }
+
+        [Theory]
+        [InlineData(0, -1)]  // Zero should become -1
+        [InlineData(1, 1)]   // Positive should stay same
+        [InlineData(999, 999)]
+        [InlineData(-1, -1)] // Negative should stay same
+        [InlineData(-99, -99)]
+        public async Task InsertAffiliateInfo_CustIdConversion_ShouldHandleCorrectly(int inputCustId, int expectedCustId)
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 123,
+                CustId = inputCustId
+            };
+
+            InsertAffiliateInfoCommand capturedCommand = null;
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<INonQueryCommand, string, CancellationToken>((cmd, connStr, ct) =>
+                {
+                    capturedCommand = cmd as InsertAffiliateInfoCommand;
+                })
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            capturedCommand.Should().NotBeNull();
+            capturedCommand.CustId.Should().Be(expectedCustId);
+        }
+
+        [Fact]
+        public async Task InsertAffiliateInfo_DealVerifyFlags_ShouldBeSetCorrectly()
+        {
+            // Arrange
+            var affiliate = new AffiliateParam
+            {
+                AffiliateId = 123,
+                CustId = 456,
+                DealVerifyFlags = 15 // Some flag value
+            };
+
+            InsertAffiliateInfoCommand capturedCommand = null;
+            _mockRepository
+                .Setup(x => x.ExecuteAsync(It.IsAny<InsertAffiliateInfoCommand>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback<INonQueryCommand, string, CancellationToken>((cmd, connStr, ct) =>
+                {
+                    capturedCommand = cmd as InsertAffiliateInfoCommand;
+                })
+                .Returns(Task.FromResult(1));
+
+            // Act
+            await _controller.InsertAffiliateInfo(affiliate);
+
+            // Assert
+            capturedCommand.Should().NotBeNull();
+            capturedCommand.DealVerifyFlags.Should().Be(15);
+        }
+
         [Theory]
         [InlineData(0, 1, 2)]
         [InlineData(5, 10, 15, 20)]
@@ -659,12 +903,12 @@ namespace Aff12B.Ext.API.Site.Tests.Controllers
 
             // Assert
             _mockRepository.Verify(x => x.ExecuteAsync(
-                It.Is<InsertIdCodeCommand>(cmd => 
-                    cmd.IdCode == "PREMIUM_CODE_001" && 
-                    cmd.SiteId == 5 && 
-                    cmd.StatusId == 10), 
-                It.IsAny<string>(), 
-                It.IsAny<CancellationToken>()), 
+                It.Is<InsertIdCodeCommand>(cmd =>
+                    cmd.IdCode == "PREMIUM_CODE_001" &&
+                    cmd.SiteId == 5 &&
+                    cmd.StatusId == 10),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -860,12 +1104,12 @@ namespace Aff12B.Ext.API.Site.Tests.Controllers
 
             // Assert
             _mockRepository.Verify(x => x.ExecuteAsync(
-                It.Is<InsertIdCodeCommand>(cmd => 
-                    cmd.IdCode == "VERIFY_CALL" && 
-                    cmd.SiteId == 99 && 
-                    cmd.StatusId == 88), 
-                It.IsAny<string>(), 
-                It.IsAny<CancellationToken>()), 
+                It.Is<InsertIdCodeCommand>(cmd =>
+                    cmd.IdCode == "VERIFY_CALL" &&
+                    cmd.SiteId == 99 &&
+                    cmd.StatusId == 88),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

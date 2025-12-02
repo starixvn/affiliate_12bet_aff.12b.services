@@ -22,6 +22,7 @@
   </Function>
   <Function>
 	<Setting Key="OH_Link_IDCode_Set" SpName="OH_Link_IDCode_Set" DbName="12BMemberSite.Siebog.Write.OneHub_Api"/>
+	<Setting Key="OH_CustomerSel" SpName="OH_CustomerSel" DbName="12BMemberSite.Siebog.Read.OneHub_Api"/>
   </Function>
   <Function Name="9W">
     <Setting Key="API_TpReport9W_Get" SpName="API_TpReport9W_Get_V2" DbName="12BMemberSite.BetDetail.Affiliate_Api"/>

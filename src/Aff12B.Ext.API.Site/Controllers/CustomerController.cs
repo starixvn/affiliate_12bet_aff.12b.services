@@ -2,8 +2,6 @@
 
 namespace Aff12B.Ext.API.Site.Controllers
 {
-    using System.Text;
-    using System.Text.Json;
     using Common.DataDomain.Api;
     using Common.DataDomain.Models;
     using Common.DataDomain.Params;
@@ -13,6 +11,8 @@ namespace Aff12B.Ext.API.Site.Controllers
     using Infastructure.Params;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using System.Text;
+    using System.Text.Json;
 
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -148,6 +148,10 @@ namespace Aff12B.Ext.API.Site.Controllers
                 };
             }
         }
+
+        [HttpGet]
+        public async Task<IEnumerable<OHCustomerModel>> GetOHCustomers(DateTime fromDate, DateTime toDate, int pageIndex, int pageSize = 2000)
+            => await _dynamicRepository.FetchAsync<OHCustomerModel>(new GetOHCustomersCriteria(fromDate, toDate, pageIndex, pageSize));
 
         private static string BuildJson(int[] userIds)
             => $"[{string.Join(",", userIds)}]";
